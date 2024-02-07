@@ -4,5 +4,9 @@
 
 class Config{
     public:
-        static std::vector<int> nb_max_courgettes;
+        int nbVehicle;
+        int nbVertex;
+        int nbShortTermVehicle;
+        std::vector<int> dist;
+        
 };

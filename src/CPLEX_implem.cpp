@@ -58,7 +58,7 @@ int opti(Config config){
             IloExpr time(env);
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
-                    time += config.dist[i][j]/config.speed[k]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    time += config.dist[i*config.nbVertex+j]/config.speed[k]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
                 }
             }
             model.add(time <= config.HardTimeLimit[k]);
@@ -70,7 +70,7 @@ int opti(Config config){
             IloExpr distance(env);
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
-                    distance += config.dist[i][j]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    distance += config.dist[i*config.nbVertex+j]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
                 }
             }
             model.add(distance - config.SoftDistanceLimit[k] <= d[k]);
@@ -80,7 +80,7 @@ int opti(Config config){
         for(int k = 0; k < config.nbShortTermVehicle; k++){
             IloExpr distance(env);
             for(int i=0; i<config.nbVertex; i++){
-                distance += config.dist[0][i]*y[i*config.nbShortTermVehicle + k];
+                distance += config.dist[0*config.nbVertex+i]*y[i*config.nbShortTermVehicle + k];
             }
             model.add(distance <= config.HardDistanceLimitShortTermVehicle[k]);
         }
