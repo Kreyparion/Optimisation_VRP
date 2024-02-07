@@ -1,4 +1,6 @@
+#pragma once
 #include <ilcplex/ilocplex.h>
+#include "config.h"
 
 ILOSTLBEGIN
 // Decision variables
@@ -9,7 +11,7 @@ IloIntVarArray t; // t[k] = time penalty for vehicle k
 IloIntVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
 
 
-int main(){
+int opti(Config config){
     IloEnv env;
    try {
         IloInt nb_max_courgettes = 3;
