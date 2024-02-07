@@ -6,6 +6,8 @@
 int main() {
     IloEnv env;
     try {
+
+        //Etape1: Créer modèle (IloModel)
         // Créer un modèle
         IloModel model(env);
 
@@ -24,6 +26,7 @@ int main() {
         model.add( -1*x + 1*y <= 20);
         model.add( 1*x + 1*y <= 40);
 
+        //Etape 2: créer solveur sur le modèle(IloCplex)
         // Créer et utiliser un solveur pour résoudre le modèle
         IloCplex cplex(model);
         if (cplex.solve()) {
