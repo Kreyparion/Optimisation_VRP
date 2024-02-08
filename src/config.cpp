@@ -3,24 +3,24 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <config.h>
+#include "config.h"
 
 Config import_data() {
     Config config;
 
-    // Exemple de lecture d'un fichier CSV pour les demandes
-    std::ifstream demandFile("tab1/demand.csv");
+    std::ifstream file("../tab1/demand.csv");
     std::string line;
-    while (std::getline(demandFile, line)) { //sert à parser 
-        std::stringstream linestream(line);
-        std::string value;
-        while (std::getline(linestream, value, '\t')) { // Assumons une séparation par virgule --> getline sert à parser
-            config.Demand.push_back(std::stoi(value)); //string to int car on veut vector de int
-        }
+    while (std::getline(file, line)){
+        std::string token;
+        std::istringstream tokenStream(line);
+        std::vector<std::string> tokens;
+        std::getline(tokenStream, token, '\t');
+        std::getline(tokenStream, token, '\t');
+        config.Demand.push_back(std::stoi(token));
     }
+    file.close();
 
-    std::ifstream distanceFile("tab1/distance.csv");
-    std::string line;
+    std::ifstream distanceFile("../tab1/distance.csv");
     // Ignorer la première ligne si elle contient des en-têtes de colonnes
     // std::getline(distanceFile, line); // Décommentez si la première ligne est un en-tête
     int rowNumber = 0; // Compteur pour suivre le nombre de lignes (et donc de sommets)
@@ -41,8 +41,7 @@ Config import_data() {
     }
     config.nbVertex = rowNumber; // Mettre à jour le nombre de sommets dans config
 
-    // Assurez-vous de fermer les fichiers après les avoir lus
-    demandFile.close();
-
+    
+    std::cout << config;
     return config;
 }

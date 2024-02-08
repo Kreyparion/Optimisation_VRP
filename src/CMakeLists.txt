@@ -4,8 +4,8 @@ project (VRP)
 # import CPLEX
 
 
-set(CPLEX_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/cplex")
-set(CONCERT_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/concert")
+set(CPLEX_DIR "/home/lucien/Bureau/projet_opti_appli/cplex")
+set(CONCERT_DIR "/home/lucien/Bureau/projet_opti_appli/concert")
 
 
 set(PROJECT_CFLAGS "-Wall -std=c++11 -O3")

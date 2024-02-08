@@ -64,6 +64,8 @@
         "typeindex": "cpp",
         "typeinfo": "cpp",
         "bitset": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "codecvt": "cpp",
+        "iomanip": "cpp"
     }
 }
