@@ -1,16 +1,9 @@
-// Import of the data
-#pragma once
-#include "config.h"
-#include <vector>
 #include <fstream>
-#include <string>
-#include <map>
+#include <sstream>
 #include <vector>
-#include <array>
-#include <memory>
-#include <iostream>
+#include <string>
 
-Config import_data(){
+Config import_data() {
     Config config;
 
     std::ifstream file("../tab1/demand.csv");
