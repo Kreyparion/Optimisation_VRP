@@ -45,11 +45,7 @@ Config import_data() {
     config.nbVertex = rowNumber; 
 
 
-    //start reading vehicule to have: 
-    // timePenalty;
-    // distancePenalty;
-    //SoftDistanceLimit:
-    //HardDistanceLimitSTV:
+    //start reading vehicule
 
     std::ifstream vehicleFile("../tab1/vehicule_cleaned.csv");
     // Ignorer la première ligne contenant les en-têtes de colonnes
@@ -83,15 +79,13 @@ Config import_data() {
                 config.nbShortTermVehicle += elem;
             }
         } else if (parameterName == "Capacity") {
-            config.Capacity = {values[0], values[1], values[2]}; // Assurez-vous que Capacity est un std::vector<float>
+            config.Capacity = {values[0], values[1], values[2]}; //Capacity est un std::vector<float>
         } else if (parameterName == "Average Speed") {
             config.speed = {values[0], values[1], values[2]};
         } else if (parameterName == "Fixed Cost") {
             config.fixedCostVehicle = {values[0], values[1], values[2]}; // Pour les véhicules à long terme
             config.fixedCostShortTermVehicle = {values[3], values[4]}; // Pour les véhicules à court terme
         } else if (parameterName == "Soft Time Limit" || parameterName == "Hard Time Limit") {
-            // Assurez-vous d'avoir des attributs correspondants dans Config pour stocker ces valeurs
-            // Exemple :
             if (parameterName == "Soft Time Limit") {
                 config.SoftTimeLimit = {values[0], values[1], values[2]};
             } else if(parameterName == "Hard Time Limit") {
@@ -106,8 +100,6 @@ Config import_data() {
         } else if (parameterName == "Hard Distance Limit") {
             config.HardDistanceLimitShortTermVehicle = {values[3], values[4]};
         }
-
-        // Répétez pour les autres paramètres selon le schéma ci-dessus
     }
 
     vehicleFile.close();
