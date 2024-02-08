@@ -2,6 +2,9 @@
 #include <ilcplex/ilocplex.h>
 #include "config.h"
 
+// 700.39
+
+
 ILOSTLBEGIN
 // Decision variables
 IloIntVarArray x; // x[i][j][k] = 1 if vehicle k travels from i to j
@@ -16,52 +19,65 @@ int opti(Config config){
    try {
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
         y = IloIntVarArray(env, config.nbVertex*config.nbShortTermVehicle, 0, 1);
-        d = IloNumVarArray(env, config.nbVehicle, 0, IloInfinity);
-        t = IloNumVarArray(env, config.nbVehicle, 0, IloInfinity);
-        u = IloNumVarArray(env, config.nbVertex*config.nbVehicle, 0, config.nbVertex-1);
+        d = IloNumVarArray(env, config.nbVehicle, 0.0, IloInfinity);
+        t = IloNumVarArray(env, config.nbVehicle, 0.0, IloInfinity);
+        u = IloNumVarArray(env, config.nbVertex*config.nbVehicle, 0.0, config.nbVertex);
 
 
         IloModel model(env);
+        
+        // Add decision variables to the model
+        model.add(x);
+        model.add(y);
+        model.add(d);
+        model.add(t);
+        model.add(u);
 
         //objective function
         IloExpr cost(env);
+        for(int k = 0; k < config.nbShortTermVehicle; k++){
+            for(int i=1; i<config.nbVertex; i++){
+                cost += config.fixedCostShortTermVehicle[k]*y[i*config.nbShortTermVehicle + k];
+            }
+        }
         for(int k = 0; k < config.nbVehicle; k++){
             cost += config.distancePenalty[k]*d[k] + config.timePenalty[k]*t[k];
-            for(int i=0; i<config.nbVertex; i++){
-                cost += config.fixedCostShortTermVehicle[k]*y[i*config.nbVehicle + k];
-            }
             for(int j=1; j<config.nbVertex; j++){
-                cost += config.fixedCostVehicle[k]*x[j*config.nbVehicle + k];
+                cost += config.fixedCostVehicle[k]*x[0 +j*config.nbVehicle + k];
             }
         }
 
         model.add(IloMinimize(env, cost));
-        
+
         //constraints
 
         // Diagonal constraint
+        
         for(int k = 0; k < config.nbVehicle; k++){
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
                     if(i == j){
-                        model.add(x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 0);
+                        model.add(x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 0.0);
                     }
                 }
             }
         }
         for(int k = 0; k < config.nbShortTermVehicle; k++){
-            model.add(y[0*config.nbShortTermVehicle + k] == 0);
+            model.add(y[0*config.nbShortTermVehicle + k] == 0.0);
         }
 
         // Soft and Hard Time limit constraint
+        
         for(int k = 0; k < config.nbVehicle; k++){
             IloExpr time(env);
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
-                    time += config.dist[i*config.nbVertex+j]/config.speed[k]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    if(i != j){
+                        time += (config.dist[i*config.nbVertex+j]/config.speed[k])*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    }
                 }
             }
-            model.add(time <= config.HardTimeLimit[k]);
+            model.add(time <= config.HardTimeLimit[k]+10.0);
             model.add(time - config.SoftTimeLimit[k] <= t[k]);
         }
 
@@ -70,7 +86,9 @@ int opti(Config config){
             IloExpr distance(env);
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
-                    distance += config.dist[i*config.nbVertex+j]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    if (i != j){
+                        distance += config.dist[i*config.nbVertex+j]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    }
                 }
             }
             model.add(distance - config.SoftDistanceLimit[k] <= d[k]);
@@ -79,7 +97,7 @@ int opti(Config config){
         // Hard Distance limit constraint for short-term vehicle
         for(int k = 0; k < config.nbShortTermVehicle; k++){
             IloExpr distance(env);
-            for(int i=0; i<config.nbVertex; i++){
+            for(int i=1; i<config.nbVertex; i++){
                 distance += config.dist[0*config.nbVertex+i]*y[i*config.nbShortTermVehicle + k];
             }
             model.add(distance <= config.HardDistanceLimitShortTermVehicle[k]);
@@ -90,9 +108,11 @@ int opti(Config config){
             for(int i=0; i<config.nbVertex; i++){
                 IloExpr flow(env);
                 for(int j=0; j<config.nbVertex; j++){
-                    flow += x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] - x[j*config.nbVehicle*config.nbVertex + i*config.nbVehicle + k];
+                    if (i != j){
+                        flow += x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] - x[j*config.nbVehicle*config.nbVertex + i*config.nbVehicle + k];
+                    }
                 }
-                model.add(flow == 0);
+                model.add(flow == 0.0);
             }
         }
 
@@ -101,34 +121,38 @@ int opti(Config config){
             IloExpr visit(env);
             for(int k=0; k<config.nbVehicle; k++){
                 for(int i=0; i<config.nbVertex; i++){
-                    visit += x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    if (i != j){
+                        visit += x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
+                    }
                 }
             }
             for(int k=0; k<config.nbShortTermVehicle; k++){
                 visit += y[j*config.nbShortTermVehicle + k];
             }
-            model.add(visit == 1);
+            model.add(visit == 1.0);
         }
-
+        
         // Only use one Short-term vehicle
         for(int k=0; k<config.nbShortTermVehicle; k++){
             IloExpr use(env);
             for(int j=1; j<config.nbVertex; j++){
                 use += y[j*config.nbShortTermVehicle + k];
             }
-            model.add(use <= 1);
+            model.add(use <= 1.0);
         }
 
         // Only use one vehicle
+        
         for(int k=0; k<config.nbVehicle; k++){
             IloExpr use(env);
             for(int j=1; j<config.nbVertex; j++){
                 use += x[j*config.nbVehicle + k];
             }
-            model.add(use <= 1);
+            model.add(use <= 1.0);
         }
-
+        
         // Subtour elimination
+        
         for(int k=0; k<config.nbVehicle; k++){
             for(int i=1; i<config.nbVertex; i++){
                 for(int j=1; j<config.nbVertex; j++){
@@ -148,17 +172,60 @@ int opti(Config config){
         }
 
         // Subtour elimination variable for base
+        
         for(int k=0; k<config.nbVehicle; k++){
-            model.add(u[0*config.nbVehicle + k] == 0);
+            model.add(u[0*config.nbVehicle + k] == 0.0);
         }
         
+        // Display all the constraints in the model
+        std::cout << model << std::endl;
 
         IloCplex cplex(model);
         cplex.solve();
 
-        IloNumArray vals(env);
         env.out() << "Cost:" << cplex.getObjValue() << std::endl;
-        //env.out() << "Result = " << cplex.getValue(x) << std::endl;
+
+        // display x
+        std::cout << "x :" << std::endl;
+        IloNumArray vals(env);
+        cplex.getValues(x, vals);
+        //int size = vals.getSize();
+        std::cout << vals << std::endl;
+        for(int k = 0; k < config.nbVehicle; k++){
+            for(int i=0; i<config.nbVertex; i++){
+                for(int j=0; j<config.nbVertex; j++){
+                    if(vals[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
+                        std::cout << "Vehicle " << k << " travels from " << i << " to " << j << std::endl;
+                    }
+                }
+            }
+        }
+
+
+
+        // display y
+        std::cout << "y :" << std::endl;
+        cplex.getValues(y, vals);
+        std::cout << vals << std::endl;
+        for(int k = 0; k < config.nbShortTermVehicle; k++){
+            for(int i=0; i<config.nbVertex; i++){
+                if(vals[i*config.nbShortTermVehicle + k] == 1){
+                    std::cout << "Short-term vehicle " << k << " visits customer " << i << std::endl;
+                }
+            }
+        }
+
+        // display d
+        std::cout << "d :" << std::endl;
+        cplex.getValues(d, vals);
+        std::cout << vals << std::endl;
+
+        // display t
+        std::cout << "t :" << std::endl;
+        cplex.getValues(t, vals);
+        std::cout << vals << std::endl;
+
+
     }
     catch (IloException& ex) {
       std::cerr << "Error: " << ex << std::endl;

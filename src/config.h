@@ -5,7 +5,7 @@
 class Config{
     public:
         int nbVehicle;
-        int nbVertex; 
+        int nbVertex;
         int nbShortTermVehicle;
         std::vector<float> dist;
         std::vector<float> speed;
