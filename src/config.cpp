@@ -46,19 +46,10 @@ Config import_data() {
 
 
     //start reading vehicule to have: 
-    // nbVehicle;
-    // nbShortTermVehicle;
-    // speed;
-    // fixedCostShortTermVehicle;
-    // fixedCostVehicle;
     // timePenalty;
     // distancePenalty;
-    // HardTimeLimit;
-    // SoftTimeLimit;
-    // SoftDistanceLimit;
-    // HardDistanceLimitShortTermVehicle;
-    // Capacity;
-    // Demand;
+    //SoftDistanceLimit:
+    //HardDistanceLimitSTV:
 
     std::ifstream vehicleFile("../tab1/vehicule_cleaned.csv");
     // Ignorer la première ligne contenant les en-têtes de colonnes
@@ -79,18 +70,22 @@ Config import_data() {
                     std::cerr << "Error parsing value: " << e.what() << '\n';
                 }
             } else {
-                values.push_back(-1); // Utiliser -1 pour représenter une valeur manquante
+                values.push_back(1000000);
             }
         }
 
         // Attribuer les valeurs lues aux attributs appropriés de config
         if (parameterName == "Number of Vehicles") {
-            config.nbVehicle = static_cast<int>(values[0]); // Exemple si vous comptez tous les véhicules comme un total
-            config.nbShortTermVehicle = static_cast<int>(values[4] + values[5]); // Exemple pour les véhicules à court terme
+            for (auto elem:{values[0], values[1], values[2]}) {
+                   config.nbVehicle += elem;             
+            } 
+            for (auto elem:{values[3], values[4]}) {
+                config.nbShortTermVehicle += elem;
+            }
         } else if (parameterName == "Capacity") {
-            config.Capacity = values; // Assurez-vous que Capacity est un std::vector<float>
+            config.Capacity = {values[0], values[1], values[2]}; // Assurez-vous que Capacity est un std::vector<float>
         } else if (parameterName == "Average Speed") {
-            config.speed = values;
+            config.speed = {values[0], values[1], values[2]};
         } else if (parameterName == "Fixed Cost") {
             config.fixedCostVehicle = {values[0], values[1], values[2]}; // Pour les véhicules à long terme
             config.fixedCostShortTermVehicle = {values[3], values[4]}; // Pour les véhicules à court terme
@@ -98,11 +93,19 @@ Config import_data() {
             // Assurez-vous d'avoir des attributs correspondants dans Config pour stocker ces valeurs
             // Exemple :
             if (parameterName == "Soft Time Limit") {
-                config.SoftTimeLimit = values;
-            } else {
-                config.HardTimeLimit = values;
+                config.SoftTimeLimit = {values[0], values[1], values[2]};
+            } else if(parameterName == "Hard Time Limit") {
+                config.HardTimeLimit = {values[0], values[1], values[2]};
             }
-        } // Continuez avec les autres paramètres de manière similaire
+        } else if (parameterName == "Time Penalty Cost") {
+            config.timePenalty = {values[0], values[1], values[2]};
+        } else if (parameterName == "Distance Penalty Cost") {
+            config.distancePenalty = {values[0], values[1], values[2]};
+        } else if (parameterName == "Soft Distance Limit") {
+            config.SoftDistanceLimit = {values[0], values[1], values[2]};
+        } else if (parameterName == "Hard Distance Limit") {
+            config.HardDistanceLimitShortTermVehicle = {values[3], values[4]};
+        }
 
         // Répétez pour les autres paramètres selon le schéma ci-dessus
     }
