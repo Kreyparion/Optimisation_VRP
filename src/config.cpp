@@ -28,7 +28,6 @@ Config import_data() {
         std::stringstream linestream(line);
         std::string value;
         while (std::getline(linestream, value, '\t')) { // Séparation par tabulation
-            std::cout << value;
             try {
                 // Convertir la valeur string en int et l'ajouter au vecteur
                 config.dist.push_back(std::stoi(value)); // string to int
