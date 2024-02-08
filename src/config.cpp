@@ -20,10 +20,12 @@ Config import_data() {
     }
     file.close();
 
+    // Lecture de distance.csv
     std::ifstream distanceFile("../tab1/distance.csv");
-    // Ignorer la première ligne si elle contient des en-têtes de colonnes
-    // std::getline(distanceFile, line); // Décommentez si la première ligne est un en-tête
-    int rowNumber = 0; // Compteur pour suivre le nombre de lignes (et donc de sommets)
+    // Ignorer la première ligne contenant les en-têtes
+    std::getline(distanceFile, line); // Cette commande ignore la première ligne
+
+    int rowNumber = 0; // Utilisé pour compter le nombre de lignes de données
     while (std::getline(distanceFile, line)) {
         std::stringstream linestream(line);
         std::string value;
@@ -39,9 +41,10 @@ Config import_data() {
         }
         ++rowNumber; // Incrémenter le compteur de lignes après avoir traité une ligne
     }
-    config.nbVertex = rowNumber -1; // Mettre à jour le nombre de sommets dans config
+    // Le nombre de sommets est égal au nombre de lignes de données
+    config.nbVertex = rowNumber; 
 
-    
     std::cout << config;
+
     return config;
 }
