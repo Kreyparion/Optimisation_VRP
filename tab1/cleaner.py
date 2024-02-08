@@ -24,7 +24,7 @@ def extraire_nombre(val):
         # Retourner NaN si aucun nombre n'est trouvé
         return "-"
     
-df.loc[:, df.columns != 'Unnamed: 0'] = df.loc[:, df.columns != 'Unnamed: 0'].applymap(extraire_nombre)
+df.loc[:, df.columns != 'parameters_name'] = df.loc[:, df.columns != 'parameters_name'].applymap(extraire_nombre)
 
 if 'Coordinates' in df_coord.columns:
     cols_to_transform = df_coord.columns[df_coord.columns != 'Coordinates']
