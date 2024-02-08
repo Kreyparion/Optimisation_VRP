@@ -36,5 +36,5 @@ print(df)
 
 df.to_csv('tab1/vehicule_cleaned.csv', sep='\t', index=False)
 
-df_coord.to_csv('tab1/coordinates_cleaned.csv',)
+df_coord.to_csv('tab1/coordinates_cleaned.csv', sep='\t', index=False)
 
