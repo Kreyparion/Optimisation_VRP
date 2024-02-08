@@ -1,24 +1,28 @@
-#include "matplotlibcpp.h"
-namespace plt = matplotlibcpp;
+#include <iostream>
+#include <vector>
 
-int main() {
-    // Exemple de coordonnées des nœuds (x, y)
-    std::vector<double> x_coords = {1, 2, 3, 4}; // Coordonnées x des nœuds
-    std::vector<double> y_coords = {1, 3, 2, 4}; // Coordonnées y des nœuds
+int main_() {
+    const int numNodes = 5; // Nombre total de nœuds
+    std::vector<bool> activeEdges(numNodes - 1, false); // État des arêtes: active (true) ou non (false)
 
-    // Exemple de trajets : de 0 à 1, de 1 à 2, etc.
-    std::vector<std::pair<int, int>> trajets = {{0, 1}, {1, 2}, {2, 3}};
-
-    // Tracer les nœuds
-    plt::scatter(x_coords, y_coords);
-
-    // Tracer les trajets
-    for (const auto& trajet : trajets) {
-        std::vector<double> x_line = {x_coords[trajet.first], x_coords[trajet.second]};
-        std::vector<double> y_line = {y_coords[trajet.first], y_coords[trajet.second]};
-        plt::plot(x_line, y_line);
-    }
+    // Exemple de configuration des trajets (arêtes actives)
+    // Pour simplifier, on utilise l'index de l'arête: 0 pour l'arête entre le nœud 0 et 1, etc.
+    activeEdges[1] = true; // Arête entre le nœud 1 et 2 est empruntée
+    activeEdges[3] = true; // Arête entre le nœud 3 et 4 est empruntée
 
     // Afficher le graphe
-    plt::show();
+    for (int i = 0; i < numNodes; ++i) {
+        std::cout << "*"; // Nœud
+        if (i < numNodes - 1) { // Si ce n'est pas le dernier nœud, afficher l'arête
+            if (activeEdges[i]) {
+                std::cout << " -> "; // Arête empruntée
+            } else {
+                std::cout << " -- "; // Arête non empruntée
+            }
+        }
+    }
+
+    std::cout << std::endl;
+
+    return 0;
 }

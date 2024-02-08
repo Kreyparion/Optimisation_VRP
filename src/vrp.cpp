@@ -7,5 +7,5 @@
 int main(){
    // Config config = import_data();
    // opti(config);
-   main();
+   main_();
 }
