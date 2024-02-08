@@ -39,8 +39,7 @@ std::ostream& operator<<(std::ostream& os, std::vector<float> const& v){
 };
 
 //display the distance matrix
-void display_dist(std::ostream& os, std::vector<int> const& dist){
-    int size = dist.size();
+void display_dist(std::ostream& os, std::vector<int> const& dist, int size){
     for (int i = 0; i < size; i++){
         for(int j = 0; j < size; j++){
             os << dist[i*size + j] << "\t";
@@ -55,7 +54,7 @@ std::ostream& operator<<(std::ostream& os, Config const& c){
     os << "nbVertex: " << c.nbVertex << std::endl;
     os << "nbShortTermVehicle: " << c.nbShortTermVehicle << std::endl;
     os << "dist: " << std::endl;
-    display_dist(os, c.dist);
+    display_dist(os, c.dist, c.nbVertex);
     os << "Demand: " << c.Demand << std::endl;
     os << "speed: " << c.speed << std::endl;
     os << "fixedCostShortTermVehicle: " << c.fixedCostShortTermVehicle << std::endl;
