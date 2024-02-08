@@ -55,7 +55,7 @@ int opti(Config config){
 
         // Soft and Hard Time limit constraint
         for(int k = 0; k < config.nbVehicle; k++){
-            IloExpr time(env);
+            IloExpr time(env);  
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
                     time += config.dist[i*config.nbVertex+j]/config.speed[k]*x[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k];
