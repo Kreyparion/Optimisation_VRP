@@ -60,7 +60,7 @@ Config import_data() {
     // Capacity;
     // Demand;
 
-    std::ifstream vehicleFile("../tab1/vehicle.csv");
+    std::ifstream vehicleFile("../tab1/vehicule_cleaned.csv");
     // Ignorer la première ligne contenant les en-têtes de colonnes
     std::getline(vehicleFile, line); // Ignorer les noms des véhicules
 
