@@ -16,7 +16,7 @@ Config import_data() {
         std::vector<std::string> tokens;
         std::getline(tokenStream, token, '\t');
         std::getline(tokenStream, token, '\t');
-        config.Demand.push_back(std::stoi(token));
+        config.Demand.push_back(std::stof(token));
     }
     file.close();
 
@@ -32,7 +32,7 @@ Config import_data() {
         while (std::getline(linestream, value, '\t')) { // Séparation par tabulation
             try {
                 // Convertir la valeur string en int et l'ajouter au vecteur
-                config.dist.push_back(std::stoi(value)); // string to int
+                config.dist.push_back(std::stof(value));
             } catch (const std::invalid_argument& ia) {
                 std::cerr << "Invalid argument: " << ia.what() << '\n';
             } catch (const std::out_of_range& oor) {
