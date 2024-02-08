@@ -28,6 +28,7 @@ Config import_data() {
         std::stringstream linestream(line);
         std::string value;
         while (std::getline(linestream, value, '\t')) { // Séparation par tabulation
+            std::cout << value;
             try {
                 // Convertir la valeur string en int et l'ajouter au vecteur
                 config.dist.push_back(std::stoi(value)); // string to int
@@ -39,7 +40,7 @@ Config import_data() {
         }
         ++rowNumber; // Incrémenter le compteur de lignes après avoir traité une ligne
     }
-    config.nbVertex = rowNumber; // Mettre à jour le nombre de sommets dans config
+    config.nbVertex = rowNumber -1; // Mettre à jour le nombre de sommets dans config
 
     
     std::cout << config;
