@@ -5,7 +5,7 @@
 #include "plot_graph.cpp"
 
 int main(){
-   // Config config = import_data();
-   // opti(config);
-   main();
-}
+   Config config = import_data();
+   opti(config);
+   return 0;
+   }

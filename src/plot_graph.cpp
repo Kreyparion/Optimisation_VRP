@@ -1,7 +1,8 @@
+/*
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
-int main() {
+int display() {
     // Exemple de coordonnées des nœuds (x, y)
     std::vector<double> x_coords = {1, 2, 3, 4}; // Coordonnées x des nœuds
     std::vector<double> y_coords = {1, 3, 2, 4}; // Coordonnées y des nœuds
@@ -22,3 +23,4 @@ int main() {
     // Afficher le graphe
     plt::show();
 }
+*/

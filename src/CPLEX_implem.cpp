@@ -19,9 +19,9 @@ int opti(Config config){
    try {
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
         y = IloIntVarArray(env, config.nbVertex*config.nbShortTermVehicle, 0, 1);
-        d = IloNumVarArray(env, config.nbVehicle, 0.0, IloInfinity);
-        t = IloNumVarArray(env, config.nbVehicle, 0.0, IloInfinity);
-        u = IloNumVarArray(env, config.nbVertex*config.nbVehicle, 0.0, config.nbVertex);
+        d = IloNumVarArray(env, config.nbVehicle, 0, IloInfinity);
+        t = IloNumVarArray(env, config.nbVehicle, 0, IloInfinity);
+        u = IloNumVarArray(env, config.nbVertex*config.nbVehicle, 0, IloInfinity);
 
 
         IloModel model(env);
@@ -69,7 +69,7 @@ int opti(Config config){
         // Soft and Hard Time limit constraint
         
         for(int k = 0; k < config.nbVehicle; k++){
-            IloExpr time(env);  
+            IloExpr time(env);
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
                     if(i != j){
@@ -77,7 +77,7 @@ int opti(Config config){
                     }
                 }
             }
-            model.add(time <= config.HardTimeLimit[k]+10.0);
+            model.add(time <= config.HardTimeLimit[k]);
             model.add(time - config.SoftTimeLimit[k] <= t[k]);
         }
 
@@ -178,7 +178,7 @@ int opti(Config config){
         }
         
         // Display all the constraints in the model
-        std::cout << model << std::endl;
+        //std::cout << model << std::endl;
 
         IloCplex cplex(model);
         cplex.solve();
