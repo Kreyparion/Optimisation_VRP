@@ -188,7 +188,7 @@ int opti(Config config, int verbose = 0){
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
 
-        env.out() << "CPLEX Solver Result: " << cplex.getObjValue() <<  " in " << elapsed.count() << " seconds" << std::endl;
+        env.out() << "CPLEX Solver Result:    " << cplex.getObjValue() <<  " in " << elapsed.count() << " seconds" << std::endl;
 
         IloNumArray vals(env);
         if (verbose >= 1){
@@ -210,11 +210,13 @@ int opti(Config config, int verbose = 0){
             }
         }
 
-        if (verbose >= 2){
-            // display y
-            std::cout << "y :" << std::endl;
+        if (verbose >= 1){
             cplex.getValues(y, vals);
-            std::cout << vals << std::endl;
+            if(verbose >= 2){
+                // display y
+                std::cout << "y :" << std::endl;
+                std::cout << vals << std::endl;
+            }
             for(int k = 0; k < config.nbShortTermVehicle; k++){
                 for(int i=0; i<config.nbVertex; i++){
                     if(vals[i*config.nbShortTermVehicle + k] == 1){
@@ -222,16 +224,17 @@ int opti(Config config, int verbose = 0){
                     }
                 }
             }
+            if(verbose >= 2){
+                // display d
+                std::cout << "d :" << std::endl;
+                cplex.getValues(d, vals);
+                std::cout << vals << std::endl;
 
-            // display d
-            std::cout << "d :" << std::endl;
-            cplex.getValues(d, vals);
-            std::cout << vals << std::endl;
-
-            // display t
-            std::cout << "t :" << std::endl;
-            cplex.getValues(t, vals);
-            std::cout << vals << std::endl;
+                // display t
+                std::cout << "t :" << std::endl;
+                cplex.getValues(t, vals);
+                std::cout << vals << std::endl;
+            }
         }
 
     }

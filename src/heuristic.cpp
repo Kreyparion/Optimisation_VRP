@@ -182,22 +182,21 @@ void solve_partitionning_problem(Config config, TSPResults& results){
         partition.push_back(0);
     }
     int vertex_num_pow = 1 << (config.nbVertex-2);
-    std::cout << vertex_num_pow << std::endl;
     // initialize capacities with 0
     std::vector<float> capacities;
     for(int i=0; i<nbTotalVehicle; i++){
         capacities.push_back(0.0);
     }
     std::shared_ptr<float> best_score = std::make_shared<float>(10000000);
+    auto start = std::chrono::high_resolution_clock::now();
     solve_partitionning_problem_rec(config, results, partition, config.nbVertex-1, vertex_num_pow, capacities, best_score);
-    std::cout << "Best score: " << *best_score << std::endl;
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Exact Algorithm Result: " << *best_score <<  " in " << elapsed.count() << " seconds" << std::endl;
 }
 
 
 void solve_heuristic(Config config, int verbose=0){
     TSPResults results = fill_results(config, verbose);
-    if (verbose >= 1){
-        std::cout << "Results size: " << results.size() << std::endl;
-    }
     solve_partitionning_problem(config, results);
 }
