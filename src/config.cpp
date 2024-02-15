@@ -83,8 +83,11 @@ Config import_data(int num) {
 
         // Attribuer les valeurs lues aux attributs appropriés de config
         if (parameterName == "Number of Vehicles") {
+            
+            config.vehicleCounts = {values[0], values[1], values[2]};
+            config.shortTermVehicleCounts = {values[3], values[4]};
             for (auto elem:{values[0], values[1], values[2]}) {
-                   config.nbVehicle += elem;             
+                config.nbVehicle += elem;
             } 
             for (auto elem:{values[3], values[4]}) {
                 config.nbShortTermVehicle += elem;
@@ -117,5 +120,33 @@ Config import_data(int num) {
 
     std::cout << config;
 
+    return config;
+}
+
+void extend_config(Config& config) {
+    // For Long Term Vehicles
+    for(int i=0; i<3; i++){
+        for(int k=0; k<config.vehicleCounts[i]; k++){
+            config.fixedCostVehicle.push_back(config.fixedCostVehicle[i]);
+            config.speed.push_back(config.speed[i]);
+            config.timePenalty.push_back(config.timePenalty[i]);
+            config.distancePenalty.push_back(config.distancePenalty[i]);
+            config.HardTimeLimit.push_back(config.HardTimeLimit[i]);
+            config.SoftTimeLimit.push_back(config.SoftTimeLimit[i]);
+            config.SoftDistanceLimit.push_back(config.SoftDistanceLimit[i]);
+            config.Capacity.push_back(config.Capacity[i]);
+        }
+    }
+    for(int i=0; i<2; i++){
+        for(int k=0; k<config.shortTermVehicleCounts[i]; k++){
+            config.fixedCostShortTermVehicle.push_back(config.fixedCostShortTermVehicle[i]);
+            config.HardDistanceLimitShortTermVehicle.push_back(config.HardDistanceLimitShortTermVehicle[i]);
+        }
+    }
+}
+
+Config getConfig() {
+    Config config = import_data();
+    extend_config(config);
     return config;
 }
