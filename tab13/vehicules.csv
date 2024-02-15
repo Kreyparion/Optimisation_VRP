@@ -1,0 +1,11 @@
+	Truck-l	Motorcycle-l	Bicycle-l	Truck-s	Motorcycle-s
+Number of Vehicles	1	1	1	1	1
+Capacity	40 kg	15 kg	10 kg	-	-
+Average Speed	40 km/h	50 km/h	10 km/h	-	-
+Fixed Cost	180	100	60	250	150
+Soft Time Limit	6 h	6 h	6 h	-	-
+Hard Time Limit	8 h	8 h	8 h	-	-
+Soft Distance Limit	300 km	300 km	150 km	-	-
+Hard Distance Limit	-	-	-	-	75 km
+Distance Penalty Cost	0.5 €/extra km	0.5 €/extra km	0.5 €/extra km	-	-
+Time Penalty Cost	50 €/extra h	40 €/extra h	30 €/extra h	-	-
