@@ -5,10 +5,15 @@
 #include <string>
 #include "config.h"
 
-Config import_data() {
+
+Config import_data(int num) {
     Config config;
 
-    std::ifstream file("../tab1/demand.csv");
+    std::ostringstream path_builder;
+    path_builder << "../tab" << num << "/demand.csv";
+    std::string file_path = path_builder.str();
+
+    std::ifstream file(file_path);
     std::string line;
     while (std::getline(file, line)){
         std::string token;
@@ -21,7 +26,7 @@ Config import_data() {
     file.close();
 
     // Lecture de distance.csv
-    std::ifstream distanceFile("../tab1/distance.csv");
+    std::ifstream distanceFile("../tab2/distance.csv");
     // Ignorer la première ligne contenant les en-têtes
     std::getline(distanceFile, line); // Cette commande ignore la première ligne
 
@@ -47,7 +52,7 @@ Config import_data() {
 
     //start reading vehicule
 
-    std::ifstream vehicleFile("../tab1/vehicule_cleaned.csv");
+    std::ifstream vehicleFile("../tab2/vehicule_cleaned.csv");
     // Ignorer la première ligne contenant les en-têtes de colonnes
     std::getline(vehicleFile, line); // Ignorer les noms des véhicules
 

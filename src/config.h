@@ -82,4 +82,3 @@ std::ostream& operator<<(std::ostream& os, Config const& c){
     
     return os;
 };
-

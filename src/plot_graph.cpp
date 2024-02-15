@@ -1,9 +1,11 @@
-#include <iostream>
-#include <vector>
+/*
+#include "matplotlibcpp.h"
+namespace plt = matplotlibcpp;
 
-int main_() {
-    const int numNodes = 5; // Nombre total de nœuds
-    std::vector<bool> activeEdges(numNodes - 1, false); // État des arêtes: active (true) ou non (false)
+int display() {
+    // Exemple de coordonnées des nœuds (x, y)
+    std::vector<double> x_coords = {1, 2, 3, 4}; // Coordonnées x des nœuds
+    std::vector<double> y_coords = {1, 3, 2, 4}; // Coordonnées y des nœuds
 
     // Exemple de configuration des trajets (arêtes actives)
     // Pour simplifier, on utilise l'index de l'arête: 0 pour l'arête entre le nœud 0 et 1, etc.
@@ -26,3 +28,4 @@ int main_() {
 
     return 0;
 }
+*/
