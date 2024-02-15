@@ -1,7 +1,7 @@
 parameters_name	Truck-l	Motorcycle-l	Bicycle-l	Truck-s	Motorcycle-s
-Number of Vehicles	6.0	6.0	0.0	10.0    10.0
-Capacity	350.0	300.0	-	-	350.0
-Average Speed	80.0	90.0	-	-	80.0
+Number of Vehicles	6.0	6.0	0.0	10.0	10.0
+Capacity	350.0	300.0	-	-	-
+Average Speed	80.0	90.0	-	-	-
 Fixed Cost	180.0	100.0	-	350.0	250.0
 Soft Time Limit	6.0	6.0	-	-	-
 Hard Time Limit	8.0	8.0	-	-	-
