@@ -5,8 +5,10 @@
 class Config{
     public:
         int nbVehicle;
+        std::vector<float> vehicleCounts;
         int nbVertex;
         int nbShortTermVehicle;
+        std::vector<float> shortTermVehicleCounts;
         std::vector<float> dist;
         std::vector<float> speed;
         std::vector<float> fixedCostShortTermVehicle;
@@ -19,6 +21,7 @@ class Config{
         std::vector<float> HardDistanceLimitShortTermVehicle;
         std::vector<float> Capacity;
         std::vector<float> Demand;
+        
 
 };
 

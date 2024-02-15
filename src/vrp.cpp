@@ -6,7 +6,7 @@
 #include "heuristic.cpp"
 
 int main(){
-   Config config = import_data();
+   Config config = getConfig();
    solve_heuristic(config);
    opti(config);
    return 0;
