@@ -144,3 +144,9 @@ void extend_config(Config& config) {
         }
     }
 }
+
+Config getConfig(int num) {
+    Config config = import_data(num);
+    extend_config(config);
+    return config;
+}
