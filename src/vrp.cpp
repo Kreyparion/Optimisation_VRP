@@ -6,7 +6,8 @@
 #include "heuristic.cpp"
 #include <string>
 
-    
+#define verbose 1
+
 int main(int argc, char *argv[]){
 
     // Check if an argument is provided
@@ -17,9 +18,9 @@ int main(int argc, char *argv[]){
     
     int tab_number = std::stoi(argv[1]); // The first argument is the config file path
 
-    Config config = import_data(tab_number); // Adjust this part to use configFilePath
-    solve_heuristic(config);
-    opti(config);
+    Config config = import_data(tab_number, verbose); // Adjust this part to use configFilePath
+    solve_heuristic(config, verbose);
+    opti(config, verbose);
 
     return 0;
 }

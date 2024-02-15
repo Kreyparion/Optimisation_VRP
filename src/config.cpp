@@ -6,11 +6,11 @@
 #include "config.h"
 
 
-Config import_data(int num) {
+Config import_data(int num, bool verbose=0) {
     Config config;
 
     std::ostringstream path_builder;
-    path_builder << "../tab" << num << "/demand.csv";
+    path_builder << "../tables/tab" << num << "/demand.csv";
     std::string file_path = path_builder.str();
 
     std::ifstream file(file_path);
@@ -27,7 +27,7 @@ Config import_data(int num) {
 
     // Lecture de distance.csv
     std::ostringstream path_builder2;
-    path_builder2 << "../tab" << num << "/distance.csv";
+    path_builder2 << "../tables/tab" << num << "/distance.csv";
     std::string file_path2 = path_builder2.str();
     std::ifstream file2(file_path2);
     // Ignorer la première ligne contenant les en-têtes
@@ -52,11 +52,10 @@ Config import_data(int num) {
     // Le nombre de sommets est égal au nombre de lignes de données
     config.nbVertex = rowNumber; 
 
-
     //start reading vehicule
 
     std::ostringstream path_builder3;
-    path_builder3 << "../tab" << num << "/vehicule_cleaned.csv";
+    path_builder3 << "../tables/tab" << num << "/vehicule_cleaned.csv";
     std::string file_path3 = path_builder3.str();
     std::ifstream file3(file_path3);
     // Ignorer la première ligne contenant les en-têtes de colonnes
@@ -118,7 +117,9 @@ Config import_data(int num) {
 
     file3.close();
 
-    std::cout << config;
+    if(verbose>1.0){
+        std::cout << config;
+    }
 
     return config;
 }

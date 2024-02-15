@@ -64,7 +64,7 @@ bool in_range_of_highest_sapacity(Config config, std::vector<int> nodes){
     return true;
 }
 
-TSPResults fill_results(Config config){
+TSPResults fill_results(Config config, int verbose=0){
     TSPResults results;
     int nbIter = std::pow(2, config.nbVertex-1);
     for(int i=0; i<nbIter; i++){
@@ -76,13 +76,12 @@ TSPResults fill_results(Config config){
         #pragma omp for nowait
         for(int i=0; i<nbIter; i++){
             std::vector<int> nodes = power_of_two_decomposition(i);
-            // std::cout << "Nodes: " << nodes << std::endl;
             if (in_range_of_highest_sapacity(config, nodes)){
                 float result = solve_TSP_brute_force(config, nodes);
                 results[i] = result;
             }
             nb_computed += 1;
-            if (nb_computed % 1000 == 0){
+            if (nb_computed % 1000 == 0 and verbose >= 1){
                 std::cout << "i: " << nb_computed << " / " << nbIter << " done" << std::endl;
             }
         }
@@ -195,10 +194,10 @@ void solve_partitionning_problem(Config config, TSPResults& results){
 }
 
 
-void solve_heuristic(Config config){
-    TSPResults results = fill_results(config);
-    std::cout << "Results size: " << results.size() << std::endl;
+void solve_heuristic(Config config, int verbose=0){
+    TSPResults results = fill_results(config, verbose);
+    if (verbose >= 1){
+        std::cout << "Results size: " << results.size() << std::endl;
+    }
     solve_partitionning_problem(config, results);
 }
-
-

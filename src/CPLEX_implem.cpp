@@ -1,8 +1,7 @@
 #pragma once
 #include <ilcplex/ilocplex.h>
 #include "config.h"
-
-// 700.39
+#include <chrono>
 
 
 ILOSTLBEGIN
@@ -14,7 +13,7 @@ IloNumVarArray t; // t[k] = time penalty for vehicle k
 IloNumVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
 
 
-int opti(Config config){
+int opti(Config config, int verbose = 0){
     IloEnv env;
    try {
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
@@ -176,55 +175,64 @@ int opti(Config config){
         for(int k=0; k<config.nbVehicle; k++){
             model.add(u[0*config.nbVehicle + k] == 0.0);
         }
-        
-        // Display all the constraints in the model
-        //std::cout << model << std::endl;
 
         IloCplex cplex(model);
+        if (verbose <= 1){
+            cplex.setOut(env.getNullStream());
+        }
+
+        auto start = std::chrono::high_resolution_clock::now();
+
         cplex.solve();
 
-        env.out() << "Cost:" << cplex.getObjValue() << std::endl;
+        auto end = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
 
-        // display x
-        std::cout << "x :" << std::endl;
+        env.out() << "CPLEX Solver Result: " << cplex.getObjValue() <<  " in " << elapsed.count() << " seconds" << std::endl;
+
         IloNumArray vals(env);
-        cplex.getValues(x, vals);
-        //int size = vals.getSize();
-        std::cout << vals << std::endl;
-        for(int k = 0; k < config.nbVehicle; k++){
-            for(int i=0; i<config.nbVertex; i++){
-                for(int j=0; j<config.nbVertex; j++){
-                    if(vals[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
-                        std::cout << "Vehicle " << k << " travels from " << i << " to " << j << std::endl;
+        if (verbose >= 1){
+            cplex.getValues(x, vals);
+            if(verbose >= 2){
+                // display x
+                std::cout << "x :" << std::endl;
+                std::cout << vals << std::endl;
+            }
+            
+            for(int k = 0; k < config.nbVehicle; k++){
+                for(int i=0; i<config.nbVertex; i++){
+                    for(int j=0; j<config.nbVertex; j++){
+                        if(vals[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
+                            std::cout << "Vehicle " << k << " travels from " << i << " to " << j << std::endl;
+                        }
                     }
                 }
             }
         }
 
-
-
-        // display y
-        std::cout << "y :" << std::endl;
-        cplex.getValues(y, vals);
-        std::cout << vals << std::endl;
-        for(int k = 0; k < config.nbShortTermVehicle; k++){
-            for(int i=0; i<config.nbVertex; i++){
-                if(vals[i*config.nbShortTermVehicle + k] == 1){
-                    std::cout << "Short-term vehicle " << k << " visits customer " << i << std::endl;
+        if (verbose >= 2){
+            // display y
+            std::cout << "y :" << std::endl;
+            cplex.getValues(y, vals);
+            std::cout << vals << std::endl;
+            for(int k = 0; k < config.nbShortTermVehicle; k++){
+                for(int i=0; i<config.nbVertex; i++){
+                    if(vals[i*config.nbShortTermVehicle + k] == 1){
+                        std::cout << "Short-term vehicle " << k << " visits customer " << i << std::endl;
+                    }
                 }
             }
+
+            // display d
+            std::cout << "d :" << std::endl;
+            cplex.getValues(d, vals);
+            std::cout << vals << std::endl;
+
+            // display t
+            std::cout << "t :" << std::endl;
+            cplex.getValues(t, vals);
+            std::cout << vals << std::endl;
         }
-
-        // display d
-        std::cout << "d :" << std::endl;
-        cplex.getValues(d, vals);
-        std::cout << vals << std::endl;
-
-        // display t
-        std::cout << "t :" << std::endl;
-        cplex.getValues(t, vals);
-        std::cout << vals << std::endl;
-
 
     }
     catch (IloException& ex) {
