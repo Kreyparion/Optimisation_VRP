@@ -4,23 +4,24 @@
 #include "config.cpp"
 #include "plot_graph.cpp"
 #include "heuristic.cpp"
-
+#include <string>
 
 #include <yaml-cpp/yaml.h>
 
-int main() {
-      YAML::Node config_yaml = YAML::LoadFile("Optimisation_VRP/config.yml");
-      // Ensure the YAML node for "number_tab" exists and can be converted to int
-      std::cout << config_yaml["number_tab"].as<int>();
-      if (config_yaml["number_tab"]) {
-         int number_tab = config_yaml["number_tab"].as<int>();
-         Config config = import_data(number_tab);
-         solve_heuristic(config);
-         opti(config);
-      } else {
-         // Handle the case where "number_tab" is not found or is not convertible to int
-         std::cerr << "\"number_tab\" not found in the YAML file or is not an integer" << std::endl;
-      }
-   
+    
+int main(int argc, char *argv[]){
+
+    // Check if an argument is provided
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <config_file_path>\n";
+        return 1; // Exit with error code if no argument is provided
+    }
+    
+    int tab_number = std::stoi(argv[1]); // The first argument is the config file path
+
+    Config config = import_data(tab_number); // Adjust this part to use configFilePath
+    solve_heuristic(config);
+    opti(config);
+
     return 0;
 }

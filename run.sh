@@ -1,4 +1,4 @@
 cd build
 cmake ../src/
 make
-./vrp
+./vrp $1

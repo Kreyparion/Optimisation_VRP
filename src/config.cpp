@@ -26,12 +26,15 @@ Config import_data(int num) {
     file.close();
 
     // Lecture de distance.csv
-    std::ifstream distanceFile("../tab2/distance.csv");
+    std::ostringstream path_builder2;
+    path_builder2 << "../tab" << num << "/distance.csv";
+    std::string file_path2 = path_builder2.str();
+    std::ifstream file2(file_path2);
     // Ignorer la première ligne contenant les en-têtes
-    std::getline(distanceFile, line); // Cette commande ignore la première ligne
+    std::getline(file2, line); // Cette commande ignore la première ligne
 
     int rowNumber = 0; // Utilisé pour compter le nombre de lignes de données
-    while (std::getline(distanceFile, line)) {
+    while (std::getline(file2, line)) {
         std::stringstream linestream(line);
         std::string value;
         while (std::getline(linestream, value, '\t')) { // Séparation par tabulation
@@ -52,11 +55,14 @@ Config import_data(int num) {
 
     //start reading vehicule
 
-    std::ifstream vehicleFile("../tab2/vehicule_cleaned.csv");
+    std::ostringstream path_builder3;
+    path_builder3 << "../tab" << num << "/vehicule_cleaned.csv";
+    std::string file_path3 = path_builder3.str();
+    std::ifstream file3(file_path3);
     // Ignorer la première ligne contenant les en-têtes de colonnes
-    std::getline(vehicleFile, line); // Ignorer les noms des véhicules
+    std::getline(file3, line); // Ignorer les noms des véhicules
 
-    while (std::getline(vehicleFile, line)) {
+    while (std::getline(file3, line)) {
         std::stringstream linestream(line);
         std::string parameterName;
         std::getline(linestream, parameterName, '\t'); //récupère le prochain string séparé par \t
@@ -107,7 +113,7 @@ Config import_data(int num) {
         }
     }
 
-    vehicleFile.close();
+    file3.close();
 
     std::cout << config;
 
