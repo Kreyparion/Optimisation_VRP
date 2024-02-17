@@ -10,8 +10,8 @@ if [ -n "$2" ]; then
     default=$2
 fi
 
-cd build
+cd build || exit
 cmake ../src/
 make
-./vrp $1 $default
+./vrp "$1" "$default"
 

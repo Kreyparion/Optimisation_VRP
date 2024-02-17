@@ -2,7 +2,10 @@ import re
 
 import pandas as pd
 
-vehicule_path = "vehicules.csv"
+vehicule_path = "tab1/vehicules.csv"
+coordinates_path = "tab1/coordinates.csv"
+
+df_coord = pd.read_csv(coordinates_path, delimiter='\t')
 
 df = pd.read_csv(vehicule_path, delimiter='\t')
 
@@ -25,6 +28,14 @@ def extraire_nombre(val):
 
 df.loc[:, df.columns != 'parameters_name'] = df.loc[:, df.columns != 'parameters_name'].applymap(extraire_nombre)
 
+if 'Coordinates' in df_coord.columns:
+    cols_to_transform = df_coord.columns[df_coord.columns != 'Coordinates']
+    for col in cols_to_transform:
+        df_coord[col] = df_coord[col].apply(extraire_nombre)
+print(df_coord)
 print(df)
 # on ré-écrit le csv
-df.to_csv('vehicule_cleaned.csv', sep='\t', index=False)
+
+df.to_csv('tab2/vehicule_cleaned.csv', sep='\t', index=False)
+
+df_coord.to_csv('tab2/coordinates_cleaned.csv', sep='\t', index=False)

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]){
 
     Config config = getConfig(tab_number, verbose);
     solve_heuristic(config, verbose);
-    opti(config, verbose);
+    /*opti(config, verbose);*/
 
     return 0;
 }
