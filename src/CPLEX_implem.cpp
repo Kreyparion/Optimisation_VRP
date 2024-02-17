@@ -13,7 +13,7 @@ IloNumVarArray t; // t[k] = time penalty for vehicle k
 IloNumVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
 
 
-int opti(Config config, int verbose = 0){
+int opti(Config& config, int verbose = 0){
     IloEnv env;
    try {
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);

@@ -12,7 +12,7 @@
 #include "config.h"
 #include "heuristic.h"
 
-float evaluate_permutation(Config config, std::vector<int> permutation){
+float evaluate_permutation(Config& config, std::vector<int> permutation){
     float cost = 0.0;
     if (permutation.size() == 0){
         return 0.0;
@@ -28,7 +28,7 @@ float evaluate_permutation(Config config, std::vector<int> permutation){
     return cost;
 }
 
-float solve_TSP_brute_force(Config config, std::vector<int> nodes){
+float solve_TSP_brute_force(Config& config, std::vector<int> nodes){
     float best_cost = 10000000;
     // go through all the permutations of the nodes
     std::vector<int> permutation = nodes;
@@ -42,6 +42,7 @@ float solve_TSP_brute_force(Config config, std::vector<int> nodes){
     return best_cost;
 }
 
+
 std::vector<int> power_of_two_decomposition(int n){
     std::vector<int> nodes;
     for(int i=0; i<32; i++){
@@ -52,7 +53,7 @@ std::vector<int> power_of_two_decomposition(int n){
     return nodes;
 }
 
-bool in_range_of_highest_sapacity(Config config, std::vector<int> nodes){
+bool in_range_of_highest_sapacity(Config& config, std::vector<int> nodes){
     float demand = 0.0;
     int n = nodes.size();
     for(int i=0; i<n; i++){
@@ -64,12 +65,9 @@ bool in_range_of_highest_sapacity(Config config, std::vector<int> nodes){
     return true;
 }
 
-TSPResults fill_results(Config config, int verbose=0){
-    TSPResults results;
+TSPResults fill_results_brute_force(Config& config, int verbose=0){
     int nbIter = std::pow(2, config.nbVertex-1);
-    for(int i=0; i<nbIter; i++){
-        results.push_back(0.0);
-    }
+    TSPResults results(nbIter, 0.0);
     int nb_computed = 0;
     #pragma omp parallel shared(results,nb_computed) num_threads(8)
     {
@@ -89,8 +87,66 @@ TSPResults fill_results(Config config, int verbose=0){
     return results;
 }
 
+float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int set){
+    int nbIter = 1 << (config.nbVertex-1);
+    int num = 1 << i;
+    int subset = set - num;
+    if(hk_results[i*nbIter+subset] != 0.0){
+        return hk_results[i*nbIter+subset];
+    }
+    int pow_j = 1;
+    float min = 10000000.0;
+    for(int j=0; j<config.nbVertex-1; j++){
+        if((subset & pow_j) != 0){
+            float value = compute_held_karp_rec(config, hk_results, j, subset);
+            float distance = value + config.dist[(i+1)*config.nbVertex+j+1];
+            if(distance < min){
+                min = distance;
+            }
+        }
+        pow_j = pow_j << 1;
+    }
+    hk_results[i*nbIter+subset] = min;
+    return min;
+}
 
-float display_partition_score(Config config, TSPResults results, std::vector<int> partition){
+
+void compute_held_karp(Config& config, HKResults& hk_results){
+    int nbIter = 1 << (config.nbVertex-1);
+    for(int i=0; i<config.nbVertex-1; i++){
+        hk_results[i*nbIter] = config.dist[i+1];
+    }
+    int max = nbIter - 1;
+    for(int i=0; i<config.nbVertex-1; i++){
+        compute_held_karp_rec(config, hk_results, i, max);
+    }
+}
+
+TSPResults fill_results_held_karp(Config& config, int verbose=0){
+    int nbIter = 1 << (config.nbVertex-1);
+    TSPResults results(nbIter, 0.0);
+    HKResults hk_results((config.nbVertex-1)*nbIter, 0.0);
+    compute_held_karp(config, hk_results);
+    
+    for(int i=1; i<nbIter; i++){
+        float min = 10000000.0;
+        int pow_j = 1;
+        for(int j=0; j<config.nbVertex-1; j++){
+            if((i & pow_j) != 0){
+                float distance = hk_results[j*nbIter+i-pow_j] + config.dist[0*config.nbVertex+j+1];
+                if(distance < min){
+                    min = distance;
+                }
+            }
+            pow_j = pow_j << 1;
+        }
+        results[i] = min;
+    }
+    return results;
+}
+
+
+float display_partition_score(Config& config, TSPResults results, std::vector<int> partition){
     float cost = 0.0;
     for(int i=0; i<config.nbVehicle; i++){
         // std::cout << "Vehicle " << i << " : ";
@@ -127,7 +183,7 @@ float display_partition_score(Config config, TSPResults results, std::vector<int
 
 
 
-bool allowed_partition(Config config, TSPResults& results, std::vector<int> partition, int vehicle, int vertex_num, int vertex_num_pow, std::vector<float> capacities){
+bool allowed_partition(Config& config, TSPResults& results, std::vector<int> partition, int vehicle, int vertex_num, int vertex_num_pow, std::vector<float> capacities){
     if (vehicle >= config.nbVehicle){
         if(partition[vehicle] == 0){
             int numSTV = vehicle - config.nbVehicle;
@@ -152,7 +208,7 @@ bool allowed_partition(Config config, TSPResults& results, std::vector<int> part
 }
 
 
-void solve_partitionning_problem_rec(Config config, TSPResults& results, std::vector<int> partition, int vertex_num, int vertex_num_pow, std::vector<float> capacities, std::shared_ptr<float> best_score){
+void solve_partitionning_problem_rec(Config& config, TSPResults& results, std::vector<int> partition, int vertex_num, int vertex_num_pow, std::vector<float> capacities, std::shared_ptr<float> best_score){
     if(vertex_num <= 0){
         float score = display_partition_score(config, results, partition);
         if(score < *best_score){
@@ -175,7 +231,7 @@ void solve_partitionning_problem_rec(Config config, TSPResults& results, std::ve
 }
 
 
-void solve_partitionning_problem(Config config, TSPResults& results){
+void solve_partitionning_problem(Config& config, TSPResults& results){
     int nbTotalVehicle = config.nbVehicle + config.nbShortTermVehicle;
     std::vector<int> partition;
     for(int i=0; i<nbTotalVehicle; i++){
@@ -196,7 +252,14 @@ void solve_partitionning_problem(Config config, TSPResults& results){
 }
 
 
-void solve_heuristic(Config config, int verbose=0){
-    TSPResults results = fill_results(config, verbose);
+void solve_heuristic(Config& config, int verbose=0){
+    TSPResults results = fill_results_held_karp(config, verbose);
+    /*TSPResults results2 = fill_results_brute_force(config, verbose);
+    for(int i=0; i<results.size(); i++){
+        if(results[i] != results2[i]){
+            std::cout << "Error: results are different" << std::endl;
+            std::cout << "i: " << i << " " << results[i] << " " << results2[i] << std::endl;
+        }
+    }*/
     solve_partitionning_problem(config, results);
 }
