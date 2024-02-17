@@ -5,7 +5,7 @@
 
 class Config {
 public:
-    int nbVehicle;
+    int nbLongTermVehicle;
     std::vector<float> vehicleCounts;
     int nbVertex;
     int nbShortTermVehicle;
@@ -58,7 +58,7 @@ std::ostream &operator<<(std::ostream &os, Config const &c) {
     display_dist(os, c.dist, c.nbVertex);
     os << "Demand: " << std::endl;
     os << "\t" << c.Demand << std::endl;
-    os << "NbVehicle: " << c.nbVehicle << std::endl;
+    os << "NbVehicle: " << c.nbLongTermVehicle << std::endl;
     os << "NbShortTermVehicle: " << c.nbShortTermVehicle << std::endl;
     os << "Speed: " << std::endl;
     os << "\t\t\t" << c.speed << std::endl;

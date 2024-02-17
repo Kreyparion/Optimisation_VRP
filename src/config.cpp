@@ -86,7 +86,7 @@ Config import_data(int num, int verbose = 0) {
             config.vehicleCounts = {values[0], values[1], values[2]};
             config.shortTermVehicleCounts = {values[3], values[4]};
             for (auto elem: {values[0], values[1], values[2]}) {
-                config.nbVehicle += elem;
+                config.nbLongTermVehicle += elem;
             }
             for (auto elem: {values[3], values[4]}) {
                 config.nbShortTermVehicle += elem;
@@ -118,7 +118,7 @@ Config import_data(int num, int verbose = 0) {
     file3.close();
 
     if (verbose > 1) {
-        std::cout << config;
+//        std::cout << config;
     }
 
     return config;
@@ -152,6 +152,6 @@ Config getConfig(int num, int verbose = 0) {
     extend_config(config);
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Data importation done in " << elapsed.count() << " seconds" << std::endl;
+//    std::cout << "Data importation done in " << elapsed.count() << " seconds" << std::endl;
     return config;
 }
