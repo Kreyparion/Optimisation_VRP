@@ -18,7 +18,7 @@ int main(int argc, char *argv[]){
     int tab_number = std::stoi(argv[1]); // The first argument is the config file path
     int verbose = std::stoi(argv[2]); // The second argument is the verbose level
 
-    Config config = import_data(tab_number, verbose); // Adjust this part to use configFilePath
+    Config config = getConfig(tab_number, verbose);
     solve_heuristic(config, verbose);
     opti(config, verbose);
 
