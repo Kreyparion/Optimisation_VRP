@@ -5,6 +5,7 @@
 
 
 ILOSTLBEGIN
+
 // Decision variables
 IloIntVarArray x; // x[i][j][k] = 1 if vehicle k travels from i to j
 IloIntVarArray y; // y[i][k] = 1 if Short-term vehicle k visits customer i
@@ -12,11 +13,18 @@ IloNumVarArray d; // d[k] = distance penalty for vehicle k
 IloNumVarArray t; // t[k] = time penalty for vehicle k
 IloNumVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
 
-
+/**
+ * @brief Optimize the problem using CPLEX
+ * 
+ * @param config The configuration of the problem
+ * @param verbose The verbosity level between 0 and 2
+ * @return float The best score found
+ */
 float opti(Config& config, int verbose = 0){
     IloEnv env;
     float best_score = 100000000.0;
    try {
+        // Bounds for the decision variables
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
         y = IloIntVarArray(env, config.nbVertex*config.nbShortTermVehicle, 0, 1);
         d = IloNumVarArray(env, config.nbVehicle, 0, IloInfinity);
@@ -33,7 +41,7 @@ float opti(Config& config, int verbose = 0){
         model.add(t);
         model.add(u);
 
-        //objective function
+        //------------------------------------- Objective function -------------------------------------
         IloExpr cost(env);
         for(int k = 0; k < config.nbShortTermVehicle; k++){
             for(int i=1; i<config.nbVertex; i++){
@@ -49,10 +57,9 @@ float opti(Config& config, int verbose = 0){
 
         model.add(IloMinimize(env, cost));
 
-        //constraints
+        //------------------------------------- Constraints -------------------------------------
 
-        // Diagonal constraint
-        
+        // Constraints for unused variables
         for(int k = 0; k < config.nbVehicle; k++){
             for(int i=0; i<config.nbVertex; i++){
                 for(int j=0; j<config.nbVertex; j++){
@@ -66,7 +73,7 @@ float opti(Config& config, int verbose = 0){
             model.add(y[0*config.nbShortTermVehicle + k] == 0.0);
         }
 
-        // Soft and Hard Time limit constraint
+        // Soft and Hard Time limit constraints
         
         for(int k = 0; k < config.nbVehicle; k++){
             IloExpr time(env);
@@ -142,7 +149,6 @@ float opti(Config& config, int verbose = 0){
         }
 
         // Only use one vehicle
-        
         for(int k=0; k<config.nbVehicle; k++){
             IloExpr use(env);
             for(int j=1; j<config.nbVertex; j++){
@@ -151,8 +157,7 @@ float opti(Config& config, int verbose = 0){
             model.add(use <= 1.0);
         }
         
-        // Subtour elimination
-        
+        // Subtour elimination constraints
         for(int k=0; k<config.nbVehicle; k++){
             for(int i=1; i<config.nbVertex; i++){
                 for(int j=1; j<config.nbVertex; j++){
@@ -171,25 +176,23 @@ float opti(Config& config, int verbose = 0){
             }
         }
 
-        // Subtour elimination variable for base
-        
+        // Subtour elimination variable for base depot
         for(int k=0; k<config.nbVehicle; k++){
             model.add(u[0*config.nbVehicle + k] == 0.0);
         }
+
+        // ------------------------------------- Solve the model -------------------------------------
 
         IloCplex cplex(model);
         if (verbose <= 1){
             cplex.setOut(env.getNullStream());
         }
 
-        auto start = std::chrono::high_resolution_clock::now();
-
         cplex.solve();
-
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
         best_score = cplex.getObjValue();
 
+        // ------------------------------------- Display the results -------------------------------------
+        
         IloNumArray vals(env);
         if (verbose >= 1){
             cplex.getValues(x, vals);

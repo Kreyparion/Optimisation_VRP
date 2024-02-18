@@ -139,6 +139,7 @@ void extend_config(Config& config) {
             config.Capacity.push_back(config.Capacity[i]);
         }
     }
+    // For Short Term Vehicles
     for(int i=0; i<2; i++){
         for(int k=0; k<config.shortTermVehicleCounts[i]; k++){
             config.fixedCostShortTermVehicle.push_back(config.fixedCostShortTermVehicle[i]);
