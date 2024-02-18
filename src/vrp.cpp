@@ -4,6 +4,7 @@
 #include "config.h"
 #include "config.cpp"
 #include "exact_solver.cpp"
+#include "heuristic.cpp"
 #include <string>
 
 
@@ -19,17 +20,22 @@ int main(int argc, char *argv[]){
 
     auto start = std::chrono::high_resolution_clock::now();
 
-
     // Import the config file
     Config config = getConfig(tab_number, verbose);
     auto end_import = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_import = end_import - start;
     std::cout << "Data importation done in " << elapsed_import.count() << " s" << std::endl;
 
+    // Solve the problem with the heuristic solver
+    float heuristic_solver_score = heuristic_solver(config, verbose);
+    auto end_heuristic_solver = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
+    std::cout << "Heuristic Algorithm Result: " << heuristic_solver_score << " in " << elapsed_heuristic_solver.count() << " s" << std::endl;
+
     // Solve the problem with the exact solver
     float exact_solver_score = exact_solver(config, verbose);
     auto end_exact_solver = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_import;
+    std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_heuristic_solver;
     std::cout << "Exact Algorithm Result: " << exact_solver_score << " in " << elapsed_exact_solver.count() << " s" << std::endl;
 
     // Solve the problem with the CPLEX solver
