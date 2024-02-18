@@ -3,7 +3,6 @@
 #include "CPLEX_implem.cpp"
 #include "config.h"
 #include "config.cpp"
-#include "plot_graph.cpp"
 #include "exact_solver.cpp"
 #include <string>
 
