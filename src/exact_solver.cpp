@@ -11,7 +11,7 @@
 #include "config.h"
 #include "exact_solver.h"
 
-float evaluate_permutation(Config& config, ListOfNodes permutation){
+float evaluate_permutation(Config& config, Permutation permutation){
     float cost = 0.0;
     if (permutation.size() == 0){
         return 0.0;
@@ -42,7 +42,7 @@ float solve_TSP_brute_force(Config& config, ListOfNodes nodes){
 }
 
 
-std::vector<int> power_of_two_decomposition(int n){
+ListOfNodes power_of_two_decomposition(int n){
     std::vector<int> nodes;
     for(int i=0; i<32; i++){
         if(n & (1 << i)){
@@ -52,7 +52,7 @@ std::vector<int> power_of_two_decomposition(int n){
     return nodes;
 }
 
-bool in_range_of_highest_sapacity(Config& config, ListOfNodes nodes){
+bool in_range_of_highest_capacity(Config& config, ListOfNodes nodes){
     float demand = 0.0;
     int n = nodes.size();
     for(int i=0; i<n; i++){
@@ -73,7 +73,7 @@ TSPResults fill_results_brute_force(Config& config, int verbose=0){
         #pragma omp for nowait
         for(int i=0; i<nbIter; i++){
             std::vector<int> nodes = power_of_two_decomposition(i);
-            if (in_range_of_highest_sapacity(config, nodes)){
+            if (in_range_of_highest_capacity(config, nodes)){
                 float result = solve_TSP_brute_force(config, nodes);
                 results[i] = result;
             }
@@ -145,12 +145,12 @@ TSPResults fill_results_held_karp(Config& config, int verbose=0){
 }
 
 
-float display_partition_score(Config& config, TSPResults results, Partition partition){
+float get_partition_score(Config& config, TSPResults results, Partition partition){
     float cost = 0.0;
+    // For long term vehicles
     for(int i=0; i<config.nbVehicle; i++){
-        // std::cout << "Vehicle " << i << " : ";
         if (partition[i] == 0){
-            // std::cout << "Empty" << std::endl;
+            // is empty
         }
         else{
             float distance = results[partition[i]];
@@ -162,20 +162,17 @@ float display_partition_score(Config& config, TSPResults results, Partition part
                 cost += config.timePenalty[i] * (time - config.SoftTimeLimit[i]);
             }
             cost += config.fixedCostVehicle[i];
-            // std::cout << cost << std::endl;
         }
     }
+    // For short term vehicles
     for(int i=config.nbVehicle; i<config.nbVehicle+config.nbShortTermVehicle; i++){
-        // std::cout << "ShortTermVehicle " << i-config.nbVehicle << " : ";
         if (partition[i] == 0){
-            // std::cout << "Empty" << std::endl;
+            // is empty
         }
         else{
             cost += config.fixedCostShortTermVehicle[i-config.nbVehicle];
-            // std::cout << cost << std::endl;
         }
     }
-    // std::cout << "Total cost: " << cost << std::endl;
     return cost;
 
 }
@@ -209,7 +206,7 @@ bool allowed_partition(Config& config, TSPResults& results, Partition partition,
 
 void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score){
     if(vertex_num <= 0){
-        float score = display_partition_score(config, results, partition);
+        float score = get_partition_score(config, results, partition);
         if(score < *best_score){
             *best_score = score;
         }
