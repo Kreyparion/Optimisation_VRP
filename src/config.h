@@ -114,7 +114,7 @@ std::ostream& operator<<(std::ostream& os, Config const& c){
  * @param verbose The verbose level between 0 and 2
  * @return Config The configuration of the problem
  */
-Config import_data(int num, bool verbose=0);
+Config import_data(int num, bool verbose);
 
 
 /**
@@ -132,4 +132,4 @@ void extend_config(Config& config);
  * @param verbose The verbose level between 0 and 2
  * @return Config The configuration of the problem
  */
-Config getConfig(int num, bool verbose=0);
+Config getConfig(int num, bool verbose);
