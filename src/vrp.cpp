@@ -4,6 +4,7 @@
 #include "config.h"
 #include "config.cpp"
 #include "exact_solver.cpp"
+#include "tabou_search.cpp"
 #include <string>
 
 
@@ -37,6 +38,11 @@ int main(int argc, char *argv[]){
     std::chrono::duration<double> elapsed_CPlex = end_CPlex - end_exact_solver;
     std::cout << "CPLEX  Solver  Result : " << CPlex_score << " in " << elapsed_CPlex.count() << " s" << std::endl;
 
+    // Solve the problem with the tabou search
+    float Tabou_score = exact_solver_tabou(config, verbose);
+    auto end_Tabou = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_Tabou = end_Tabou - end_CPlex;
+    std::cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << std::endl;
 
     return 0;
 }
