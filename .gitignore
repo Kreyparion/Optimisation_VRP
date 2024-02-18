@@ -3,4 +3,4 @@ build
 src/CMakeLists.txt
 
 
-.vscodeo
+.vscode

@@ -1,23 +1,27 @@
 # OPTIMISATION VRP
 
-Index : numéros d'entrepot : 0 entrepot principal 
-1-10 tous les points de livraison
+## Introduction
 
-2 locations possibles
-Long-term : 
+## Running the project
+### Installation
 
+For Windows : make sure you are using WSL2
 
-Soft time : paie un abonnement : 6h de base : fixed cost
-Si on dépasse entre 6h et 8h : un time penalty cost
+Download CPlex from [IBM](https://www.ibm.com/products/ilog-cplex-optimization-studio/cplex-optimizer) and install it.
 
-+ soft distance limit : 
-SI on dépasse : on a un distance penalty cost
+Modify the `CMakelists.txt` file to add the path to the CPLEX installation.
 
-Short term :
+```cmake
+# Path to CPLEX and CONCERT
+set(CPLEX_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/cplex")
+set(CONCERT_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/concert")
+```
 
-d value : demands -> in kilograms
+### Usage
 
-used single cost for one delivery
+```bash
+bash run.sh <tab_number[1:17]> (verbose{0,1,2})
+```
+The first argument is the number of the tab to run. The second argument is the verbosity level. 0 is the default level, 1 is for more details and 2 is for debug.
 
-Coordinates : geographical positions (not used because we have a matrix)
-
+## Structure of the project
