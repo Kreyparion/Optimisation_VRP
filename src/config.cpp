@@ -6,7 +6,8 @@
 #include <chrono>
 #include "config.h"
 
-Config import_data(int num, int verbose = 0) {
+
+Config import_data(int num, bool verbose=0) {
     Config config;
 
     std::ostringstream path_builder;
@@ -15,7 +16,7 @@ Config import_data(int num, int verbose = 0) {
 
     std::ifstream file(file_path);
     std::string line;
-    while (std::getline(file, line)) {
+    while (std::getline(file, line)){
         std::string token;
         std::istringstream tokenStream(line);
         std::vector<std::string> tokens;
@@ -41,16 +42,16 @@ Config import_data(int num, int verbose = 0) {
             try {
                 // Convertir la valeur string en int et l'ajouter au vecteur
                 config.dist.push_back(std::stof(value));
-            } catch (const std::invalid_argument &ia) {
+            } catch (const std::invalid_argument& ia) {
                 std::cerr << "Invalid argument: " << ia.what() << '\n';
-            } catch (const std::out_of_range &oor) {
+            } catch (const std::out_of_range& oor) {
                 std::cerr << "Out of Range error: " << oor.what() << '\n';
             }
         }
         ++rowNumber; // Incrémenter le compteur de lignes après avoir traité une ligne
     }
     // Le nombre de sommets est égal au nombre de lignes de données
-    config.nbVertex = rowNumber;
+    config.nbVertex = rowNumber; 
 
     //start reading vehicule
 
@@ -65,14 +66,14 @@ Config import_data(int num, int verbose = 0) {
         std::stringstream linestream(line);
         std::string parameterName;
         std::getline(linestream, parameterName, '\t'); //récupère le prochain string séparé par \t
-
+        
         std::vector<float> values; // Pour stocker les valeurs numériques des paramètres
         std::string value;
         while (std::getline(linestream, value, '\t')) {
             if (value != "-") { // Ignorer les valeurs manquantes
                 try {
                     values.push_back(std::stof(value)); // Convertir en float et stocker
-                } catch (const std::exception &e) {
+                } catch (const std::exception& e) {
                     std::cerr << "Error parsing value: " << e.what() << '\n';
                 }
             } else {
@@ -82,13 +83,13 @@ Config import_data(int num, int verbose = 0) {
 
         // Attribuer les valeurs lues aux attributs appropriés de config
         if (parameterName == "Number of Vehicles") {
-
+            
             config.vehicleCounts = {values[0], values[1], values[2]};
             config.shortTermVehicleCounts = {values[3], values[4]};
-            for (auto elem: {values[0], values[1], values[2]}) {
-                config.nbLongTermVehicle += elem;
-            }
-            for (auto elem: {values[3], values[4]}) {
+            for (auto elem:{values[0], values[1], values[2]}) {
+                config.nbVehicle += elem;
+            } 
+            for (auto elem:{values[3], values[4]}) {
                 config.nbShortTermVehicle += elem;
             }
         } else if (parameterName == "Capacity") {
@@ -101,7 +102,7 @@ Config import_data(int num, int verbose = 0) {
         } else if (parameterName == "Soft Time Limit" || parameterName == "Hard Time Limit") {
             if (parameterName == "Soft Time Limit") {
                 config.SoftTimeLimit = {values[0], values[1], values[2]};
-            } else if (parameterName == "Hard Time Limit") {
+            } else if(parameterName == "Hard Time Limit") {
                 config.HardTimeLimit = {values[0], values[1], values[2]};
             }
         } else if (parameterName == "Time Penalty Cost") {
@@ -117,17 +118,17 @@ Config import_data(int num, int verbose = 0) {
 
     file3.close();
 
-    if (verbose > 1) {
-//        std::cout << config;
+    if(verbose>1.0){
+        std::cout << config;
     }
 
     return config;
 }
 
-void extend_config(Config &config) {
+void extend_config(Config& config) {
     // For Long Term Vehicles
-    for (int i = 0; i < 3; i++) {
-        for (int k = 0; k < config.vehicleCounts[i]; k++) {
+    for(int i=0; i<3; i++){
+        for(int k=0; k<config.vehicleCounts[i]; k++){
             config.fixedCostVehicle.push_back(config.fixedCostVehicle[i]);
             config.speed.push_back(config.speed[i]);
             config.timePenalty.push_back(config.timePenalty[i]);
@@ -138,20 +139,17 @@ void extend_config(Config &config) {
             config.Capacity.push_back(config.Capacity[i]);
         }
     }
-    for (int i = 0; i < 2; i++) {
-        for (int k = 0; k < config.shortTermVehicleCounts[i]; k++) {
+    // For Short Term Vehicles
+    for(int i=0; i<2; i++){
+        for(int k=0; k<config.shortTermVehicleCounts[i]; k++){
             config.fixedCostShortTermVehicle.push_back(config.fixedCostShortTermVehicle[i]);
             config.HardDistanceLimitShortTermVehicle.push_back(config.HardDistanceLimitShortTermVehicle[i]);
         }
     }
 }
 
-Config getConfig(int num, int verbose = 0) {
-    auto start = std::chrono::high_resolution_clock::now();
+Config getConfig(int num, bool verbose=0) {
     Config config = import_data(num, verbose);
     extend_config(config);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-//    std::cout << "Data importation done in " << elapsed.count() << " seconds" << std::endl;
     return config;
 }

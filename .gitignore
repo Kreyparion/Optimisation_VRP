@@ -1,5 +1,6 @@
-# build
-build
+# The Build Directory
+build/
+
 src/CMakeLists.txt
 .idea
 cmake-build-debug
