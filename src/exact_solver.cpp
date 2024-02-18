@@ -10,9 +10,9 @@
 
 
 #include "config.h"
-#include "heuristic.h"
+#include "exact_solver.h"
 
-float evaluate_permutation(Config& config, std::vector<int> permutation){
+float evaluate_permutation(Config& config, ListOfNodes permutation){
     float cost = 0.0;
     if (permutation.size() == 0){
         return 0.0;
@@ -28,7 +28,7 @@ float evaluate_permutation(Config& config, std::vector<int> permutation){
     return cost;
 }
 
-float solve_TSP_brute_force(Config& config, std::vector<int> nodes){
+float solve_TSP_brute_force(Config& config, ListOfNodes nodes){
     float best_cost = 10000000;
     // go through all the permutations of the nodes
     std::vector<int> permutation = nodes;
@@ -53,7 +53,7 @@ std::vector<int> power_of_two_decomposition(int n){
     return nodes;
 }
 
-bool in_range_of_highest_sapacity(Config& config, std::vector<int> nodes){
+bool in_range_of_highest_sapacity(Config& config, ListOfNodes nodes){
     float demand = 0.0;
     int n = nodes.size();
     for(int i=0; i<n; i++){
@@ -146,7 +146,7 @@ TSPResults fill_results_held_karp(Config& config, int verbose=0){
 }
 
 
-float display_partition_score(Config& config, TSPResults results, std::vector<int> partition){
+float display_partition_score(Config& config, TSPResults results, Partition partition){
     float cost = 0.0;
     for(int i=0; i<config.nbVehicle; i++){
         // std::cout << "Vehicle " << i << " : ";
@@ -183,7 +183,7 @@ float display_partition_score(Config& config, TSPResults results, std::vector<in
 
 
 
-bool allowed_partition(Config& config, TSPResults& results, std::vector<int> partition, int vehicle, int vertex_num, int vertex_num_pow, std::vector<float> capacities){
+bool allowed_partition(Config& config, TSPResults& results, Partition partition, int vehicle, int vertex_num, int vertex_num_pow, Capacities capacities){
     if (vehicle >= config.nbVehicle){
         if(partition[vehicle] == 0){
             int numSTV = vehicle - config.nbVehicle;
@@ -208,7 +208,7 @@ bool allowed_partition(Config& config, TSPResults& results, std::vector<int> par
 }
 
 
-void solve_partitionning_problem_rec(Config& config, TSPResults& results, std::vector<int> partition, int vertex_num, int vertex_num_pow, std::vector<float> capacities, std::shared_ptr<float> best_score){
+void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score){
     if(vertex_num <= 0){
         float score = display_partition_score(config, results, partition);
         if(score < *best_score){
@@ -252,14 +252,11 @@ void solve_partitionning_problem(Config& config, TSPResults& results){
 }
 
 
-void solve_heuristic(Config& config, int verbose=0){
+void exact_solver(Config& config, int verbose=0){
+    auto start = std::chrono::high_resolution_clock::now();
     TSPResults results = fill_results_held_karp(config, verbose);
-    /*TSPResults results2 = fill_results_brute_force(config, verbose);
-    for(int i=0; i<results.size(); i++){
-        if(results[i] != results2[i]){
-            std::cout << "Error: results are different" << std::endl;
-            std::cout << "i: " << i << " " << results[i] << " " << results2[i] << std::endl;
-        }
-    }*/
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    std::cout << "Held-Karp Algorithm done in " << elapsed.count() << " seconds" << std::endl;
     solve_partitionning_problem(config, results);
 }

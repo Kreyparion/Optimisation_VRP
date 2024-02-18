@@ -3,7 +3,7 @@
 #include "config.h"
 #include "config.cpp"
 #include "plot_graph.cpp"
-#include "heuristic.cpp"
+#include "exact_solver.cpp"
 #include <string>
 
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
     int verbose = std::stoi(argv[2]); // The second argument is the verbose level
 
     Config config = getConfig(tab_number, verbose);
-    solve_heuristic(config, verbose);
+    exact_solver(config, verbose);
     opti(config, verbose);
 
     return 0;
