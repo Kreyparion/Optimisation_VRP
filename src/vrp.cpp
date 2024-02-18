@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 
     // Check if an argument is provided
     if (argc != 3) {
-        std::cerr << "Usage: " << argv[0] << " <tab_number[1:17]> <verbose{0,1,2}>\n";
+        std::cerr << "Usage: " << argv[0] << " <table_number[1:17]> <verbose{0,1,2}>\n";
         return 1; // Exit with error code if no argument is provided
     }
     int tab_number = std::stoi(argv[1]); // The first argument is the config file path

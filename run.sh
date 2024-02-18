@@ -1,6 +1,6 @@
 # check if the number of arguments is one or two
 if [ -z "$1" ]; then
-    echo "Usage: $0 <tab_number[1:17]> (verbose{0,1,2})"
+    echo "Usage: $0 <table_number[1:17]> (verbose{0,1,2})"
     exit 1
 fi
 
