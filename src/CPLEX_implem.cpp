@@ -13,8 +13,9 @@ IloNumVarArray t; // t[k] = time penalty for vehicle k
 IloNumVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
 
 
-int opti(Config& config, int verbose = 0){
+float opti(Config& config, int verbose = 0){
     IloEnv env;
+    float best_score = 100000000.0;
    try {
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
         y = IloIntVarArray(env, config.nbVertex*config.nbShortTermVehicle, 0, 1);
@@ -187,8 +188,7 @@ int opti(Config& config, int verbose = 0){
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = end - start;
-
-        env.out() << "CPLEX Solver Result:    " << cplex.getObjValue() <<  " in " << elapsed.count() << " seconds" << std::endl;
+        best_score = cplex.getObjValue();
 
         IloNumArray vals(env);
         if (verbose >= 1){
@@ -245,6 +245,6 @@ int opti(Config& config, int verbose = 0){
       std::cerr << "Error" << std::endl;
    }
    env.end();
-   return 0;
+   return best_score;
 
 }

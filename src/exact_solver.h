@@ -57,14 +57,16 @@ void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partit
  * 
  * @param config The configuration of the problem
  * @param results The TSP solution for every subset of vertices
+ * @return float The best score found
  */
-void solve_partitionning_problem(Config& config, TSPResults& results);
+float solve_partitionning_problem(Config& config, TSPResults& results);
 
 /**
  * @brief Launch the exact solver for the problem
  * 
  * @param config The configuration of the problem
  * @param verbose The verbose level between 0 and 2
+ * @return float The best score found
  */
-void exact_solver(Config& config, int verbose);
+float exact_solver(Config& config, int verbose);
 

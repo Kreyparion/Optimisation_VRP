@@ -6,7 +6,6 @@
 #include <math.h>
 #include <memory>
 #include <omp.h>
-#include <chrono>
 
 
 #include "config.h"
@@ -231,7 +230,7 @@ void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partit
 }
 
 
-void solve_partitionning_problem(Config& config, TSPResults& results){
+float solve_partitionning_problem(Config& config, TSPResults& results){
     int nbTotalVehicle = config.nbVehicle + config.nbShortTermVehicle;
     std::vector<int> partition;
     for(int i=0; i<nbTotalVehicle; i++){
@@ -244,19 +243,12 @@ void solve_partitionning_problem(Config& config, TSPResults& results){
         capacities.push_back(0.0);
     }
     std::shared_ptr<float> best_score = std::make_shared<float>(10000000);
-    auto start = std::chrono::high_resolution_clock::now();
     solve_partitionning_problem_rec(config, results, partition, config.nbVertex-1, vertex_num_pow, capacities, best_score);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Exact Algorithm Result: " << *best_score <<  " in " << elapsed.count() << " seconds" << std::endl;
+    return *best_score;
 }
 
 
-void exact_solver(Config& config, int verbose=0){
-    auto start = std::chrono::high_resolution_clock::now();
+float exact_solver(Config& config, int verbose=0){
     TSPResults results = fill_results_held_karp(config, verbose);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Held-Karp Algorithm done in " << elapsed.count() << " seconds" << std::endl;
-    solve_partitionning_problem(config, results);
+    return solve_partitionning_problem(config, results);
 }

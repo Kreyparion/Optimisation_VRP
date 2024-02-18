@@ -148,11 +148,7 @@ void extend_config(Config& config) {
 }
 
 Config getConfig(int num, bool verbose=0) {
-    auto start = std::chrono::high_resolution_clock::now();
     Config config = import_data(num, verbose);
     extend_config(config);
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - start;
-    std::cout << "Data importation done in " << elapsed.count() << " seconds" << std::endl;
     return config;
 }
