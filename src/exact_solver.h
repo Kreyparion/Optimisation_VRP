@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <array>
+#include <memory>
+
 
 
 using Partition = std::vector<int>;
