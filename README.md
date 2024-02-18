@@ -45,3 +45,7 @@ The TSP is solved using the Held-Karp algorithm (dynamic programming in O(n^2*2^
 
 ### The Heuristic algorithm
 
+
+### The `run.sh` script
+
+The `run.sh` script is a bash script that compiles the project and runs it with the given arguments. It calls the `vrp.cpp` file which is the main file of the project, responsible for calling every algorithm and printing the time and the results.

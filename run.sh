@@ -10,6 +10,8 @@ if [ -n "$2" ]; then
     default=$2
 fi
 
+# create build directory and compile the code
+mkdir -p build
 cd build
 cmake ../src/
 make

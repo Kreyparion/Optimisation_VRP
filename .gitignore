@@ -1,6 +1,6 @@
-# build
-build
-src/CMakeLists.txt
+# The Build Directory
+build/
 
+src/CMakeLists.txt
 
 .vscode
