@@ -1,115 +1,190 @@
 #include "tabou_search.h"
 
-// Structure pour une solution
-struct TabouSolution {
-    std::vector<int> tour; // Représentation d'une solution (e.g., ordre de visite des clients)
-    float cost{}; // Coût de la solution
-};
+// Implémentation des fonctions de la classe TabouSearch
 
-float evaluate_permutation_tabou(Config& config, Permutation permutation){
-    float cost = 0.0;
-    if (permutation.empty()){
-        return 0.0;
-    }
-    int previous_value = 0;
-    auto it = permutation.begin();
-    auto end = permutation.end();
-    for(;it != end;++it){
-        cost += config.dist[previous_value*config.nbVertex+*it];
-        previous_value = *it;
-    }
-    cost += config.dist[previous_value];
-    return cost;
+// Initialisation des membres de la classe si nécessaire
+TabouSearch::TabouSearch(const Config &config) : config(config) {
+    TabouSearch::config = config;
+    num_iterations = 1000;
+    tabou_tenure = 10;
 }
 
-// Fonction pour générer des solutions voisines
-std::vector<TabouSolution> generateNeighbors(const TabouSolution &currentSolution, Config &config) {
-    std::vector<TabouSolution> neighbors;
-    for (size_t i = 0; i < currentSolution.tour.size() - 1; ++i) {
-        for (size_t j = i + 1; j < currentSolution.tour.size(); ++j) {
-            TabouSolution neighbor = currentSolution;
-            std::swap(neighbor.tour[i], neighbor.tour[j]); // Échanger deux clients
-            neighbor.cost = evaluate_permutation_tabou(config, neighbor.tour); // Évaluer le coût de la nouvelle solution
-            neighbors.push_back(neighbor);
+/*// Générer et retourner une solution initiale valide
+std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
+    std::vector<int> solution(config.nbVertex, 0);
+    std::vector<float> vehicleLoad(config.nbVehicle + config.nbShortTermVehicle, 0);
+    int currentVehicle = 0;
+
+    // Répartition initiale des demandes sur les véhicules en respectant la capacité
+    for (int i = 1; i < config.nbVertex; ++i) { // Commencer par 1 car 0 est généralement le dépôt
+        if (vehicleLoad[currentVehicle] + config.Demand[i] > config.Capacity[currentVehicle]) {
+            // Si le véhicule actuel ne peut pas gérer la demande supplémentaire, passer au suivant
+            ++currentVehicle;
+            if (currentVehicle >= vehicleLoad.size()) {
+                // Si nous n'avons plus de véhicules disponibles, la solution initiale n'est pas viable
+                throw std::runtime_error("Not enough vehicles to cover all demands in initial solution.");
+            }
         }
+        vehicleLoad[currentVehicle] += config.Demand[i];
+        solution[i] = currentVehicle;
     }
-    return neighbors;
-}
+    displaySolution(solution);
+    return solution;
+}*/
 
-// Fonction de recherche tabou
-TabouSolution tabouSearch(Config &config, const TabouSolution &initialSolution, int maxIterations, int tabouListSize) {
-    std::set<std::vector<int>> tabouList;
-    TabouSolution bestSolution = initialSolution;
-    TabouSolution currentSolution = initialSolution;
+std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
+    std::vector<std::vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle);
 
-    for (int iteration = 0; iteration < maxIterations; ++iteration) {
-        auto neighbors = generateNeighbors(currentSolution, config);
-        TabouSolution bestNeighbor;
-        bool found = false;
+    // Initialiser les tournées pour les véhicules à long terme
+    for (int v = 0; v < config.nbVehicle; ++v) {
+        solution[v].push_back(0); // Ajouter le dépôt comme point de départ
+    }
 
-        for (const auto &neighbor: neighbors) {
-            if (tabouList.find(neighbor.tour) == tabouList.end() ||
-                neighbor.cost < bestSolution.cost) { // Si pas dans la liste tabou ou meilleur que la meilleure solution
-                if (!found || neighbor.cost < bestNeighbor.cost) {
-                    bestNeighbor = neighbor;
-                    found = true;
+    // Assigner les clients aux véhicules à long terme en respectant la capacité
+    for (int client = 1; client < config.nbVertex; ++client) {
+        bool assigned = false;
+        for (int v = 0; v < config.nbVehicle && !assigned; ++v) {
+            if (canAccommodate(solution[v], client, v)) {
+                solution[v].push_back(client);
+                assigned = true;
+            }
+        }
+
+        // Si aucun véhicule à long terme ne peut prendre le client, essayer les véhicules à court terme
+        if (!assigned) {
+            for (int v = config.nbVehicle; v < solution.size() && !assigned; ++v) {
+                if (solution[v].empty()) { // Un véhicule à court terme peut prendre un seul client
+                    solution[v].push_back(0); // Ajouter le dépôt
+                    solution[v].push_back(client);
+//                    solution[v].push_back(0); // Retourner au dépôt
+                    assigned = true;
                 }
             }
         }
 
-        if (found) {
-            if (bestNeighbor.cost < bestSolution.cost) {
-                bestSolution = bestNeighbor; // Mise à jour de la meilleure solution
-            }
-            tabouList.insert(currentSolution.tour); // Ajouter la solution actuelle à la liste tabou
-            currentSolution = bestNeighbor; // Passer à la meilleure solution voisine
-
-            // Maintenir la taille de la liste tabou
-            if (tabouList.size() > tabouListSize) {
-                tabouList.erase(tabouList.begin()); // Supprimer l'élément le plus ancien
-            }
-        } else {
-            break; // Aucun voisin valide trouvé, sortir de la boucle
+        // Si le client n'est toujours pas assigné, il y a un problème de capacité
+        if (!assigned) {
+            throw std::runtime_error("Unable to assign all clients to vehicles.");
         }
     }
-    return bestSolution;
+
+    // display the solution
+    displaySolution(solution);
+
+    return solution;
 }
 
-TSPResults fill_results_rech_tabou(Config &config, int verbose) {
-    // Définir une solution initiale (à adapter selon vos besoins)
-    std::vector<int> initialPermutation(config.nbVertex);
-    std::iota(initialPermutation.begin(), initialPermutation.end(), 0); // Initiale séquentielle
-    std::cout << "Initial permutation: " << initialPermutation << std::endl;
-
-    // Convertir la solution initiale en TabouSolution avec coût évalué
-    TabouSolution initialSolution{initialPermutation, evaluate_permutation_tabou(config, initialPermutation)};
-    std::cout << "Initial solution cost: " << initialSolution.cost << std::endl;
-    std::cout << "Initial solution tour: " << initialSolution.tour << std::endl;
-
-    // Paramètres pour la recherche tabou
-    int maxIterations = 1000;
-    int tabouListSize = 10;
-
-    // Exécuter la recherche tabou
-    TabouSolution bestSolution = tabouSearch(config, initialSolution, maxIterations, tabouListSize);
-
-    // Préparer les TSPResults
-    TSPResults results(config.nbVertex);
-    for (int i = 0; i < config.nbVertex; ++i) {
-        // Supposer que l'indice i correspond à un sous-ensemble spécifique des nœuds
-        // et que vous voulez le coût pour ce sous-ensemble.
-        results[i] = evaluate_permutation_tabou(config,
-                                                bestSolution.tour); // Ou utiliser un sous-ensemble spécifique si nécessaire
+// Helper function pour vérifier si le véhicule peut prendre un autre client
+bool TabouSearch::canAccommodate(const std::vector<int> &tour, int client, int vehicle) {
+    float load = 0.0;
+    // Calculer la charge actuelle du véhicule
+    for (int i: tour) {
+        load += config.Demand[i];
     }
-
-    // Affichage des informations si verbose est activé
-    if (verbose > 0) {
-        std::cout << "Best Tabou Solution Cost: " << bestSolution.cost << std::endl;
-    }
-    return results;
+    // Vérifier si le client peut être ajouté sans dépasser la capacité
+/*
+    cout << "load: " << load << " config.Demand[client]: " << config.Demand[client] << " config.Capacity[vehicle]: " << config.Capacity[vehicle] << endl;
+*/
+    return load + config.Demand[client] <= config.Capacity[vehicle];
 }
 
-float exact_solver_tabou(Config& config, int verbose){
-    TSPResults results = fill_results_rech_tabou(config, verbose);
-    return solve_partitionning_problem(config, results);
+
+float TabouSearch::run() {
+    this->currentSolution = this->generateInitialSolution();
+    this->bestSolution = this->currentSolution;
+    this->bestCost = this->calculateCost(this->currentSolution);
+
+    for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
+        auto candidateMoves = this->generateCandidateMoves();
+        std::pair<int, int> bestMove;
+        float bestMoveCost = std::numeric_limits<float>::max();
+
+        for (const auto &move: candidateMoves) {
+            if (!this->isTabou(move)) {
+                // Appliquer temporairement le mouvement
+                applyMove(move);
+                float tempCost = this->calculateCost(this->currentSolution);
+
+                // Annuler le mouvement
+                applyMove(move);
+
+                if (tempCost < bestMoveCost) {
+                    bestMoveCost = tempCost;
+                    bestMove = move;
+                }
+            }
+        }
+
+        // Si un mouvement améliorant a été trouvé, l'appliquer et mettre à jour la liste tabou
+        if (bestMoveCost < this->bestCost) {
+            applyMove(bestMove);
+            this->bestCost = bestMoveCost;
+            this->bestSolution = this->currentSolution;
+            updateTabouList(bestMove);
+        }
+
+        // Gestion de la durée de vie de la liste tabou pourrait être ajoutée ici
+    }
+
+    return this->bestCost;
+}
+
+void TabouSearch::displaySolution(const std::vector<std::vector<int>> &solution) {
+    std::cout << "Solution:\n";
+    for (int i = 0; i < solution.size(); ++i) {
+        if (solution[i].empty()) {
+            continue;
+        }
+        std::cout << "Le véhicule " << i << " fait la tournée: ";
+        for (int client: solution[i]) {
+            std::cout << client << " ";
+        }
+        std::cout << "\n";
+    }
+}
+
+float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) {
+    float cost = 0.0f;
+
+    // ... Calculer le coût ici en fonction de la matrice de distance, des coûts fixes,
+    // des pénalités de temps et de distance, et des demandes ...
+
+    return cost;
+}
+
+// Génère une liste de mouvements candidats
+std::vector<std::pair<int, int>> TabouSearch::generateCandidateMoves() {
+    std::vector<std::pair<int, int>> moves;
+    for (size_t i = 0; i < this->currentSolution.size() - 1; ++i) {
+        for (size_t j = i + 1; j < currentSolution.size(); ++j) {
+            moves.emplace_back(i, j);
+        }
+    }
+    return moves;
+}
+
+// Applique un mouvement à la solution actuelle
+void TabouSearch::applyMove(std::pair<int, int> move) {
+    std::swap(currentSolution[move.first], currentSolution[move.second]);
+}
+
+bool TabouSearch::isTabou(const std::pair<int, int> &move) {
+    for (auto &tabuMove: tabouList) {
+        if (tabuMove == move) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void TabouSearch::updateTabouList(const std::pair<int, int> &move) {
+    // Ajouter un nouveau mouvement à la liste tabou et retirer les anciens si nécessaire
+    tabouList.push_back(move);
+    if (tabouList.size() > tabou_tenure) {
+        tabouList.pop_front();
+    }
+}
+
+void TabouSearch::decrementTabouTenure() {
+    // Décrémenter la durée de vie des éléments de la liste tabou
 }

@@ -1,24 +1,32 @@
 #pragma once
 
-/** Adel **/
-#include <vector>
-#include <set>
-#include <numeric>
 #include "config.h"
-#include "exact_solver.h"
-#include <iostream>
+#include <vector>
+#include <list>
+#include <algorithm>
+#include <limits>
 
-// Structure pour une solution
-struct TabouSolution;
+class TabouSearch {
+public:
+    explicit TabouSearch(const Config& config);
+    float run();
 
-float evaluate_permutation_tabou(Config& config, Permutation permutation);
+private:
+    Config config;
+    std::vector<std::vector<int>> currentSolution;
+    std::vector<std::vector<int>> bestSolution;
+    std::list<std::pair<int, int>> tabouList; // Pair of vertex indices representing a move
+    float bestCost = std::numeric_limits<float>::max();
+    int num_iterations;
+    int tabou_tenure;
 
-// Fonction pour générer des solutions voisines
-std::vector<TabouSolution> generateNeighbors(const TabouSolution &currentSolution, Config &config);
-
-// Fonction de recherche tabou
-TabouSolution tabouSearch(Config &config, const TabouSolution &initialSolution, int maxIterations, int tabouListSize);
-
-TSPResults fill_results_rech_tabou(Config &config, int verbose);
-
-float exact_solver_tabou(Config& config, int verbose=0);
+    std::vector<std::vector<int>> generateInitialSolution();
+    float calculateCost(const std::vector<std::vector<int>>& solution);
+    std::vector<std::pair<int, int>> generateCandidateMoves();
+    static void displaySolution(const std::vector<std::vector<int>>& solution);
+    bool canAccommodate(const std::vector<int>& tour, int client, int vehicle);
+    void applyMove(std::pair<int, int> move);
+    bool isTabou(const std::pair<int, int>& move);
+    void updateTabouList(const std::pair<int, int>& move);
+    void decrementTabouTenure();
+};
