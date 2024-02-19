@@ -125,31 +125,41 @@ Config import_data(int num, bool verbose=0) {
     return config;
 }
 
-void extend_config(Config& config) {
+Config extend_config(Config& config) {
     // For Long Term Vehicles
+    Config new_config;
+    new_config.nbVehicle = config.nbVehicle;
+    new_config.nbShortTermVehicle = config.nbShortTermVehicle;
+    new_config.vehicleCounts = config.vehicleCounts;
+    new_config.shortTermVehicleCounts = config.shortTermVehicleCounts;
+    new_config.dist = config.dist;
+    new_config.nbVertex = config.nbVertex;
+    new_config.Demand = config.Demand;
     for(int i=0; i<3; i++){
         for(int k=0; k<config.vehicleCounts[i]; k++){
-            config.fixedCostVehicle.push_back(config.fixedCostVehicle[i]);
-            config.speed.push_back(config.speed[i]);
-            config.timePenalty.push_back(config.timePenalty[i]);
-            config.distancePenalty.push_back(config.distancePenalty[i]);
-            config.HardTimeLimit.push_back(config.HardTimeLimit[i]);
-            config.SoftTimeLimit.push_back(config.SoftTimeLimit[i]);
-            config.SoftDistanceLimit.push_back(config.SoftDistanceLimit[i]);
-            config.Capacity.push_back(config.Capacity[i]);
+            new_config.fixedCostVehicle.push_back(config.fixedCostVehicle[i]);
+            new_config.speed.push_back(config.speed[i]);
+            new_config.timePenalty.push_back(config.timePenalty[i]);
+            new_config.distancePenalty.push_back(config.distancePenalty[i]);
+            new_config.HardTimeLimit.push_back(config.HardTimeLimit[i]);
+            new_config.SoftTimeLimit.push_back(config.SoftTimeLimit[i]);
+            new_config.SoftDistanceLimit.push_back(config.SoftDistanceLimit[i]);
+            new_config.Capacity.push_back(config.Capacity[i]);
         }
     }
     // For Short Term Vehicles
     for(int i=0; i<2; i++){
         for(int k=0; k<config.shortTermVehicleCounts[i]; k++){
-            config.fixedCostShortTermVehicle.push_back(config.fixedCostShortTermVehicle[i]);
-            config.HardDistanceLimitShortTermVehicle.push_back(config.HardDistanceLimitShortTermVehicle[i]);
+            new_config.fixedCostShortTermVehicle.push_back(config.fixedCostShortTermVehicle[i]);
+            new_config.HardDistanceLimitShortTermVehicle.push_back(config.HardDistanceLimitShortTermVehicle[i]);
         }
     }
+    return new_config;
 }
 
 Config getConfig(int num, bool verbose=0) {
     Config config = import_data(num, verbose);
-    extend_config(config);
+    
+    config = extend_config(config);
     return config;
 }

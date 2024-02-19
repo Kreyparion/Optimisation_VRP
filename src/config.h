@@ -122,7 +122,7 @@ Config import_data(int num, bool verbose);
  * 
  * @param config The configuration of the problem
  */
-void extend_config(Config& config);
+Config extend_config(Config& config);
 
 
 /**
