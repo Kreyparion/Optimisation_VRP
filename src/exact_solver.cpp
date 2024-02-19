@@ -86,8 +86,9 @@ TSPResults fill_results_brute_force(Config& config, int verbose=0){
     return results;
 }
 
-float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int set){
-    int nbIter = 1 << (config.nbVertex-1);
+float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int set, ListOfNodes nodes){
+    int n = nodes.size();
+    int nbIter = 1 << n;
     int num = 1 << i;
     int subset = set - num;
     if(hk_results[i*nbIter+subset] != 0.0){
@@ -95,10 +96,10 @@ float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int se
     }
     int pow_j = 1;
     float min = 10000000.0;
-    for(int j=0; j<config.nbVertex-1; j++){
+    for(int j=0; j<n; j++){
         if((subset & pow_j) != 0){
-            float value = compute_held_karp_rec(config, hk_results, j, subset);
-            float distance = value + config.dist[(i+1)*config.nbVertex+j+1];
+            float value = compute_held_karp_rec(config, hk_results, j, subset, nodes);
+            float distance = value + config.dist[nodes[i]*config.nbVertex+nodes[j]];
             if(distance < min){
                 min = distance;
             }
@@ -110,22 +111,46 @@ float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int se
 }
 
 
-void compute_held_karp(Config& config, HKResults& hk_results){
-    int nbIter = 1 << (config.nbVertex-1);
-    for(int i=0; i<config.nbVertex-1; i++){
-        hk_results[i*nbIter] = config.dist[i+1];
+void compute_held_karp(Config& config, HKResults& hk_results, ListOfNodes nodes){
+    int n = nodes.size();
+    int nbIter = 1 << n;
+    for(int i=0; i<n; i++){
+        hk_results[i*nbIter] = config.dist[nodes[i]];
     }
     int max = nbIter - 1;
-    for(int i=0; i<config.nbVertex-1; i++){
-        compute_held_karp_rec(config, hk_results, i, max);
+    for(int i=0; i<n; i++){
+        compute_held_karp_rec(config, hk_results, i, max, nodes);
     }
+}
+
+float get_one_TSP_result(Config& config, ListOfNodes nodes){
+    int n = nodes.size();
+    if (n <= 0){
+        return 0.0;
+    }
+    int nbIter = 1 << n;
+    HKResults hk_results(n*nbIter, 0.0);
+    compute_held_karp(config, hk_results, nodes);
+    float min = 10000000.0;
+    for(int i=0; i<n; i++){
+        int i_power = 1 << i;
+        float distance = hk_results[i*nbIter+nbIter-i_power-1] + config.dist[0*config.nbVertex+nodes[i]];
+        if(distance < min){
+            min = distance;
+        }
+    }
+    return min;
 }
 
 TSPResults fill_results_held_karp(Config& config, int verbose=0){
     int nbIter = 1 << (config.nbVertex-1);
     TSPResults results(nbIter, 0.0);
     HKResults hk_results((config.nbVertex-1)*nbIter, 0.0);
-    compute_held_karp(config, hk_results);
+    ListOfNodes nodes;
+    for(int i=1; i<config.nbVertex; i++){
+        nodes.push_back(i);
+    }
+    compute_held_karp(config, hk_results, nodes);
     
     for(int i=1; i<nbIter; i++){
         float min = 10000000.0;
@@ -143,6 +168,7 @@ TSPResults fill_results_held_karp(Config& config, int verbose=0){
     }
     return results;
 }
+
 
 float get_partition_score(Config& config, TSPResults results, Partition partition){
     float cost = 0.0;

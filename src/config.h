@@ -6,7 +6,7 @@
 // display where the config is from (csv)
 /**
  * @brief The configuration of the problem with all the parameters
- *
+ * 
  * @param nbVehicle The total number of long term vehicles
  * @param vehicleCounts The number of vehicles of each type
  * @param nbVertex The number of vertices
@@ -110,7 +110,7 @@ std::ostream& operator<<(std::ostream& os, Config const& c){
 
 /**
  * @brief Import the data from a csv file
- *
+ * 
  * @param num The number of the file (between 1 and 17)
  * @param verbose The verbose level between 0 and 2
  * @return Config The configuration of the problem
@@ -120,15 +120,15 @@ Config import_data(int num, bool verbose);
 
 /**
  * @brief Extend the configuration with side effect : for every vehicle type, add it as many times as there are vehicles of this type
- *
+ * 
  * @param config The configuration of the problem
  */
-void extend_config(Config& config);
+Config extend_config(Config& config);
 
 
 /**
  * @brief Get the configuration of the problem (data from the csv file)
- *
+ * 
  * @param num The number of the file (between 1 and 17)
  * @param verbose The verbose level between 0 and 2
  * @return Config The configuration of the problem
