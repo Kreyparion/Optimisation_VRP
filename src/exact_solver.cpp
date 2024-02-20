@@ -86,7 +86,7 @@ TSPResults fill_results_brute_force(Config& config, int verbose=0){
     return results;
 }
 
-float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int set, ListOfNodes nodes){
+float compute_held_karp_rec(Config& config, HKResults& hk_results, HKPredecessors& hk_pred, int i, int set, ListOfNodes nodes){
     int n = nodes.size();
     int nbIter = 1 << n;
     int num = 1 << i;
@@ -96,22 +96,27 @@ float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int se
     }
     int pow_j = 1;
     float min = 10000000.0;
+    int min_j = 0;
     for(int j=0; j<n; j++){
         if((subset & pow_j) != 0){
-            float value = compute_held_karp_rec(config, hk_results, j, subset, nodes);
+            float value = compute_held_karp_rec(config, hk_results, hk_pred, j, subset, nodes);
             float distance = value + config.dist[nodes[i]*config.nbVertex+nodes[j]];
             if(distance < min){
                 min = distance;
+                min_j = j;
             }
         }
         pow_j = pow_j << 1;
     }
     hk_results[i*nbIter+subset] = min;
+    if(hk_pred.size() > 0){
+        hk_pred[i*nbIter+subset] = min_j;
+    }
     return min;
 }
 
 
-void compute_held_karp(Config& config, HKResults& hk_results, ListOfNodes nodes){
+void compute_held_karp(Config& config, HKResults& hk_results, HKPredecessors& hk_pred, ListOfNodes nodes){
     int n = nodes.size();
     int nbIter = 1 << n;
     for(int i=0; i<n; i++){
@@ -119,7 +124,7 @@ void compute_held_karp(Config& config, HKResults& hk_results, ListOfNodes nodes)
     }
     int max = nbIter - 1;
     for(int i=0; i<n; i++){
-        compute_held_karp_rec(config, hk_results, i, max, nodes);
+        compute_held_karp_rec(config, hk_results, hk_pred, i, max, nodes);
     }
 }
 
@@ -130,7 +135,8 @@ float get_one_TSP_result(Config& config, ListOfNodes nodes){
     }
     int nbIter = 1 << n;
     HKResults hk_results(n*nbIter, 0.0);
-    compute_held_karp(config, hk_results, nodes);
+    HKPredecessors hk_pred;
+    compute_held_karp(config, hk_results, hk_pred, nodes);
     float min = 10000000.0;
     for(int i=0; i<n; i++){
         int i_power = 1 << i;
@@ -142,15 +148,59 @@ float get_one_TSP_result(Config& config, ListOfNodes nodes){
     return min;
 }
 
+Path get_one_TSP_solution(Config& config, ListOfNodes nodes){
+    int n = nodes.size();
+    if (n <= 0){
+        return Path();
+    }
+    int nbIter = 1 << n;
+    HKResults hk_results(n*nbIter, 0.0);
+    HKPredecessors hk_pred(n*nbIter, 0);
+    compute_held_karp(config, hk_results, hk_pred, nodes);
+    float min = 10000000.0;
+    int min_i = 0;
+    for(int i=0; i<n; i++){
+        int i_power = 1 << i;
+        float distance = hk_results[i*nbIter+nbIter-i_power-1] + config.dist[0*config.nbVertex+nodes[i]];
+        if(distance < min){
+            min = distance;
+            min_i = i;
+        }
+    }
+    Path path;
+    int i = min_i;
+    int set = nbIter-1-(1 << i);
+    while(set > 0){
+        path.push_back(nodes[i]);
+        int j = hk_pred[i*nbIter+set];
+        set = set - (1 << j);
+        i = j;
+    }
+    path.push_back(nodes[i]);
+    return path;
+}
+
+
+Solution return_solution_from_partition(Config& config, Partition partition){
+    Solution sol = init_solution(config.nbVehicle+config.nbShortTermVehicle);
+    for(int i=0; i<config.nbVehicle; i++){
+        sol[i] = get_one_TSP_solution(config, power_of_two_decomposition(partition[i]));
+    }
+    for(int i=config.nbVehicle; i<config.nbVehicle+config.nbShortTermVehicle; i++){
+        sol[i] = power_of_two_decomposition(partition[i]);
+    }
+    return sol;
+}
 TSPResults fill_results_held_karp(Config& config, int verbose=0){
     int nbIter = 1 << (config.nbVertex-1);
     TSPResults results(nbIter, 0.0);
     HKResults hk_results((config.nbVertex-1)*nbIter, 0.0);
+    HKPredecessors hk_pred;
     ListOfNodes nodes;
     for(int i=1; i<config.nbVertex; i++){
         nodes.push_back(i);
     }
-    compute_held_karp(config, hk_results, nodes);
+    compute_held_karp(config, hk_results, hk_pred, nodes);
     
     for(int i=1; i<nbIter; i++){
         float min = 10000000.0;
@@ -229,11 +279,12 @@ bool allowed_partition(Config& config, TSPResults& results, Partition partition,
 }
 
 
-void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score){
+void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score, Partition_ptr best_partition){
     if(vertex_num <= 0){
         float score = get_partition_score(config, results, partition);
         if(score < *best_score){
             *best_score = score;
+            *best_partition = partition;
         }
     }
     else{
@@ -242,7 +293,7 @@ void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partit
             if (allowed_partition(config, results, partition, i, vertex_num, vertex_num_pow, capacities)){
                 partition[i] += vertex_num_pow;
                 capacities[i] += config.Demand[vertex_num];
-                solve_partitionning_problem_rec(config, results, partition, vertex_num-1, vertex_num_pow >> 1, capacities, best_score);
+                solve_partitionning_problem_rec(config, results, partition, vertex_num-1, vertex_num_pow >> 1, capacities, best_score, best_partition);
                 capacities[i] -= config.Demand[vertex_num];
                 partition[i] -= vertex_num_pow;
             }
@@ -252,7 +303,7 @@ void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partit
 }
 
 
-float solve_partitionning_problem(Config& config, TSPResults& results){
+Partition solve_partitionning_problem(Config& config, TSPResults& results){
     int nbTotalVehicle = config.nbVehicle + config.nbShortTermVehicle;
     std::vector<int> partition;
     for(int i=0; i<nbTotalVehicle; i++){
@@ -265,12 +316,14 @@ float solve_partitionning_problem(Config& config, TSPResults& results){
         capacities.push_back(0.0);
     }
     std::shared_ptr<float> best_score = std::make_shared<float>(10000000);
-    solve_partitionning_problem_rec(config, results, partition, config.nbVertex-1, vertex_num_pow, capacities, best_score);
-    return *best_score;
+    std::shared_ptr<Partition> best_partition = std::make_shared<Partition>(partition);
+    solve_partitionning_problem_rec(config, results, partition, config.nbVertex-1, vertex_num_pow, capacities, best_score, best_partition);
+    return *best_partition;
 }
 
 
-float exact_solver(Config& config, int verbose=0){
+Solution exact_solver(Config& config, int verbose=0){
     TSPResults results = fill_results_held_karp(config, verbose);
-    return solve_partitionning_problem(config, results);
+    Partition best_partition = solve_partitionning_problem(config, results);
+    return return_solution_from_partition(config, best_partition);
 }
