@@ -6,17 +6,17 @@
 
 // Initialisation des membres de la classe si nécessaire
 TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bool verbose) :
-        config(std::move(config)),
+        config(move(config)),
         num_iterations(num_iterations),
         tabou_tenure(tabou_tenure),
         verbose(verbose) {}
 
-std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
+vector<vector<int>> TabouSearch::generateInitialSolution() {
     if (verbose) {
-        std::cout << "Génération de la solution initiale..." << std::endl;
+        cout << "Génération de la solution initiale..." << endl;
     }
 
-    std::vector<std::vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle);
+    vector<vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle);
 
     // Initialiser les tournées pour les véhicules
     for (int vehicule = 0; vehicule < config.nbVehicle + config.nbShortTermVehicle; ++vehicule) {
@@ -29,7 +29,7 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
         for (int vehicule = 0; vehicule < config.nbVehicle && !assigned; ++vehicule) {
             if (canAssignLongTerm(solution[vehicule], client, vehicule)) {
                 if (verbose) {
-                    std::cout << "Client: " << client << " assigné au véhicule long-term: " << vehicule << std::endl;
+                    cout << "Client: " << client << " assigné au véhicule long-term: " << vehicule << endl;
                 }
                 solution[vehicule].push_back(client);
                 assigned = true;
@@ -46,8 +46,8 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
                 if (solution[vehicule].size() == 1 &&
                     canAssignShortTerm(client, vehicule)) { // Un véhicule à court terme peut prendre un seul client
                     if (verbose) {
-                        std::cout << "Client: " << client << " assigné au véhicule short-term: " << vehicule
-                                  << std::endl;
+                        cout << "Client: " << client << " assigné au véhicule short-term: " << vehicule
+                                  << endl;
                     }
                     solution[vehicule].push_back(client);
                     assigned = true;
@@ -66,7 +66,7 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
             if (verbose) {
                 cout << "Client: " << client << " non-assigné à un véhicule." << endl;
             }
-            throw std::runtime_error("Impossible d'assigner le client à un véhicule. Capacité insuffisante.");
+            throw runtime_error("Impossible d'assigner le client à un véhicule. Capacité insuffisante.");
         }
     }
 
@@ -74,15 +74,15 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
 }
 
 // Helper function pour vérifier si le véhicule peut prendre un autre client
-bool TabouSearch::canAssignLongTerm(const std::vector<int> &tour, int client, int vehicle) {
+bool TabouSearch::canAssignLongTerm(const vector<int> &tour, int client, int vehicle) {
     if (verbose) {
-        std::cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << std::endl;
+        cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << endl;
     }
 
     if (tour.size() == 1) {
         // Si le véhicule n'a pas de clients, il peut prendre n'importe quel client
         if (verbose) {
-            std::cout << "Le véhicule n'a pas de clients, donc le client peut être assigné." << std::endl;
+            cout << "Le véhicule n'a pas de clients, donc le client peut être assigné." << endl;
         }
         return true;
     }
@@ -102,12 +102,12 @@ bool TabouSearch::canAssignLongTerm(const std::vector<int> &tour, int client, in
     totalTime = totalDistance / config.speed[vehicle];
 
     if (verbose) {
-        std::cout << "Charge avant le client: " << load << " Distance totale avant le client: " << totalDistance
-                  << std::endl;
-        std::cout << "Charge apres: " << load + config.Demand[client] << " Distance totale apres: " << totalDistance
-                  << " Temps total: " << totalTime << std::endl;
-        std::cout << "Capacité: " << config.Capacity[vehicle] << " Limite de temps: " << config.HardTimeLimit[vehicle]
-                  << std::endl;
+        cout << "Charge avant le client: " << load << " Distance totale avant le client: " << totalDistance
+                  << endl;
+        cout << "Charge apres: " << load + config.Demand[client] << " Distance totale apres: " << totalDistance
+                  << " Temps total: " << totalTime << endl;
+        cout << "Capacité: " << config.Capacity[vehicle] << " Limite de temps: " << config.HardTimeLimit[vehicle]
+                  << endl;
     }
 
     // Vérifier la capacité et la limite de temps
@@ -116,7 +116,7 @@ bool TabouSearch::canAssignLongTerm(const std::vector<int> &tour, int client, in
 
 bool TabouSearch::canAssignShortTerm(int client, int vehicle) {
     if (verbose) {
-        std::cout << "Essai du client: " << client << " avec le véhicule short-term: " << vehicle << std::endl;
+        cout << "Essai du client: " << client << " avec le véhicule short-term: " << vehicle << endl;
     }
 
     float limiteDistance = config.HardDistanceLimitShortTermVehicle[vehicle];
@@ -158,8 +158,8 @@ float TabouSearch::run() {
     /*for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
         auto candidateMoves = this->generateCandidateMoves();
         cout << "Itération " << iteration << " - Nombre de mouvements candidats: " << candidateMoves.size() << endl;
-        std::pair<int, int> bestMove;
-        float bestMoveCost = std::numeric_limits<float>::max();
+        pair<int, int> bestMove;
+        float bestMoveCost = numeric_limits<float>::max();
 
         for (const auto &move: candidateMoves) {
             if (!this->isTabou(move)) {
@@ -191,48 +191,48 @@ float TabouSearch::run() {
     return this->bestCost;
 }
 
-void TabouSearch::displaySolution(const std::vector<std::vector<int>> &solution) const {
+void TabouSearch::displaySolution(const vector<vector<int>> &solution) const {
     if (verbose) {
-        std::cout << "Affichage de la solution..." << std::endl;
+        cout << "Affichage de la solution..." << endl;
     }
 
     if (solution.empty()) {
-        std::cout << "La solution est vide." << std::endl;
+        cout << "La solution est vide." << endl;
         return;
     }
 
     for (int i = 0; i < solution.size(); ++i) {
         if (solution[i].size() == 1) {
-            std::cout << "Le véhicule " << i << " ne fait pas de tournée." << std::endl;
+            cout << "Le véhicule " << i << " ne fait pas de tournée." << endl;
             continue;
         }
 
-        std::cout << "Le véhicule " << i << " fait la tournée: ";
+        cout << "Le véhicule " << i << " fait la tournée: ";
 
         for (int j = 0; j < solution[i].size(); ++j) {
-            std::cout << solution[i][j];
+            cout << solution[i][j];
             if (j < solution[i].size() - 1) {
-                std::cout << "->";
+                cout << "->";
             }
         }
         // Vérifiez si le véhicule est long-term ou short-term
         if (i < config.nbVehicle) {
             // Pour les véhicules long-term, ajoutez "->0" pour montrer le retour au dépôt
-            std::cout << "->0";
+            cout << "->0";
         } else {
             // Pour les véhicules short-term, vérifiez s'ils ont plus d'un client
             if (solution[i].size() > 2) {
-                std::cout << " (Attention: les véhicules short-term devraient avoir un seul client)";
+                cout << " (Attention: les véhicules short-term devraient avoir un seul client)";
             }
         }
-        std::cout << "\n";
+        cout << "\n";
     }
 }
 
 
-float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) {
+float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
     if (verbose) {
-        std::cout << "Calcul du coût de la solution..." << std::endl;
+        cout << "Calcul du coût de la solution..." << endl;
     }
     float totalCost = 0.0f;
     for (const auto &vehicleTour: solution) {
@@ -315,8 +315,8 @@ float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) 
 }
 
 // Génère une liste de mouvements candidats
-std::vector<std::pair<int, int>> TabouSearch::generateCandidateMoves() {
-    std::vector<std::pair<int, int>> moves;
+vector<pair<int, int>> TabouSearch::generateCandidateMoves() {
+    vector<pair<int, int>> moves;
     for (size_t i = 0; i < this->currentSolution.size() - 1; ++i) {
         for (size_t j = i + 1; j < currentSolution.size(); ++j) {
             moves.emplace_back(i, j);
@@ -326,11 +326,11 @@ std::vector<std::pair<int, int>> TabouSearch::generateCandidateMoves() {
 }
 
 // Applique un mouvement à la solution actuelle
-void TabouSearch::applyMove(std::pair<int, int> move) {
-    std::swap(currentSolution[move.first], currentSolution[move.second]);
+void TabouSearch::applyMove(pair<int, int> move) {
+    swap(currentSolution[move.first], currentSolution[move.second]);
 }
 
-bool TabouSearch::isTabou(const std::pair<int, int> &move) {
+bool TabouSearch::isTabou(const pair<int, int> &move) {
     for (auto &tabuMove: tabouList) {
         if (tabuMove == move) {
             return true;
@@ -339,7 +339,7 @@ bool TabouSearch::isTabou(const std::pair<int, int> &move) {
     return false;
 }
 
-void TabouSearch::updateTabouList(const std::pair<int, int> &move) {
+void TabouSearch::updateTabouList(const pair<int, int> &move) {
     // Ajouter un nouveau mouvement à la liste tabou et retirer les anciens si nécessaire
     tabouList.push_back(move);
     if (tabouList.size() > tabou_tenure) {
