@@ -23,7 +23,7 @@ private:
     std::vector<std::vector<int>> generateInitialSolution();
     float calculateCost(const std::vector<std::vector<int>>& solution);
     std::vector<std::pair<int, int>> generateCandidateMoves();
-    static void displaySolution(const std::vector<std::vector<int>>& solution);
+    void displaySolution(const std::vector<std::vector<int>>& solution) const;
     bool canAccommodateLongTerm(const std::vector<int>& tour, int client, int vehicle);
     bool canAccommodateShortTerm(int client, int vehicle);
     void applyMove(std::pair<int, int> move);

@@ -26,9 +26,9 @@ int main(int argc, char *argv[]){
     Config config = getConfig(tab_number, verbose);
     auto end_import = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_import = end_import - start;
-    std::cout << "Data importation done in " << elapsed_import.count() << " s" << std::endl;
+//    std::cout << "Data importation done in " << elapsed_import.count() << " s" << std::endl;
 
-    // Solve the problem with the heuristic solver
+/*    // Solve the problem with the heuristic solver
     float heuristic_solver_score = heuristic_solver(config, verbose);
     auto end_heuristic_solver = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]){
     float CPlex_score = opti(config, verbose);
     auto end_CPlex = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_CPlex = end_CPlex - end_exact_solver;
-    std::cout << "CPLEX  Solver  Result : " << CPlex_score << " in " << elapsed_CPlex.count() << " s" << std::endl;
+    std::cout << "CPLEX  Solver  Result : " << CPlex_score << " in " << elapsed_CPlex.count() << " s" << std::endl;*/
 
     // Solve the problem with the tabou search
     float Tabou_score = TabouSearch(config).run();
