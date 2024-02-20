@@ -1,15 +1,21 @@
 #include "tabou_search.h"
 
+#include <utility>
+
 // Implémentation des fonctions de la classe TabouSearch
 
 // Initialisation des membres de la classe si nécessaire
-TabouSearch::TabouSearch(const Config &config) : config(config) {
-    TabouSearch::config = config;
-    num_iterations = 10;
-    tabou_tenure = 10;
-}
+TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bool verbose) :
+        config(std::move(config)),
+        num_iterations(num_iterations),
+        tabou_tenure(tabou_tenure),
+        verbose(verbose) {}
 
 std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
+    if (verbose) {
+        std::cout << "Génération de la solution initiale..." << std::endl;
+    }
+
     std::vector<std::vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle);
 
     // Initialiser les tournées pour les véhicules
@@ -21,12 +27,16 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
     for (int client = 1; client < config.nbVertex; ++client) {
         bool assigned = false;
         for (int vehicule = 0; vehicule < config.nbVehicle && !assigned; ++vehicule) {
-            if (canAccommodateLongTerm(solution[vehicule], client, vehicule)) {
-                cout << "Client: " << client << " assigné au vehicule long-term: " << vehicule << endl << endl;
+            if (canAssignLongTerm(solution[vehicule], client, vehicule)) {
+                if (verbose) {
+                    std::cout << "Client: " << client << " assigné au véhicule long-term: " << vehicule << std::endl;
+                }
                 solution[vehicule].push_back(client);
                 assigned = true;
             } else {
-                cout << "Client: " << client << " non-assigné au vehicule long-term: " << vehicule << endl << endl;
+                if (verbose) {
+                    cout << "Client: " << client << " non-assigné au vehicule long-term: " << vehicule << endl << endl;
+                }
             }
         }
 
@@ -34,13 +44,18 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
         if (!assigned) {
             for (int vehicule = config.nbVehicle; vehicule < solution.size() && !assigned; ++vehicule) {
                 if (solution[vehicule].size() == 1 &&
-                    canAccommodateShortTerm(client,
-                                            vehicule)) { // Un véhicule à court terme peut prendre un seul client
-                    cout << "Client: " << client << " assigné au vehicule short-term: " << vehicule << endl << endl;
+                    canAssignShortTerm(client, vehicule)) { // Un véhicule à court terme peut prendre un seul client
+                    if (verbose) {
+                        std::cout << "Client: " << client << " assigné au véhicule short-term: " << vehicule
+                                  << std::endl;
+                    }
                     solution[vehicule].push_back(client);
                     assigned = true;
                 } else {
-                    cout << "Client: " << client << " non-assigné au vehicule short-term: " << vehicule << endl << endl;
+                    if (verbose) {
+                        cout << "Client: " << client << " non-assigné au vehicule short-term: " << vehicule << endl
+                             << endl;
+                    }
                 }
             }
         }
@@ -48,8 +63,10 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
         // Si le client n'est toujours pas assigné, il y a un problème de capacité
         if (!assigned) {
             // affichage des infos pour debug
-            cout << "Client: " << client << " non-assigné à un véhicule." << endl;
-            throw std::runtime_error("Unable to assign all clients to vehicles.");
+            if (verbose) {
+                cout << "Client: " << client << " non-assigné à un véhicule." << endl;
+            }
+            throw std::runtime_error("Impossible d'assigner le client à un véhicule. Capacité insuffisante.");
         }
     }
 
@@ -57,7 +74,18 @@ std::vector<std::vector<int>> TabouSearch::generateInitialSolution() {
 }
 
 // Helper function pour vérifier si le véhicule peut prendre un autre client
-bool TabouSearch::canAccommodateLongTerm(const std::vector<int> &tour, int client, int vehicle) {
+bool TabouSearch::canAssignLongTerm(const std::vector<int> &tour, int client, int vehicle) {
+    if (verbose) {
+        std::cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << std::endl;
+    }
+
+    if (tour.size() == 1) {
+        // Si le véhicule n'a pas de clients, il peut prendre n'importe quel client
+        if (verbose) {
+            std::cout << "Le véhicule n'a pas de clients, donc le client peut être assigné." << std::endl;
+        }
+        return true;
+    }
 
     float load = 0.0, totalDistance = 0.0, totalTime;
     int prevLocation = 0; // Supposons que le dépôt est le point de départ
@@ -73,21 +101,30 @@ bool TabouSearch::canAccommodateLongTerm(const std::vector<int> &tour, int clien
                      config.dist[client * config.nbVertex + 0]; // Ajout du retour au dépôt
     totalTime = totalDistance / config.speed[vehicle];
 
-    cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << endl;
-    cout << "Charge avant le client: " << load << " Distance totale avant le client: " << totalDistance << endl;
-    cout << "Charge apres: " << load + config.Demand[client] << " Distance totale apres: " << totalDistance
-         << " Temps total: " << totalTime << endl;
-    cout << "Capacité: " << config.Capacity[vehicle] << " Limite de temps: " << config.HardTimeLimit[vehicle] << endl;
+    if (verbose) {
+        std::cout << "Charge avant le client: " << load << " Distance totale avant le client: " << totalDistance
+                  << std::endl;
+        std::cout << "Charge apres: " << load + config.Demand[client] << " Distance totale apres: " << totalDistance
+                  << " Temps total: " << totalTime << std::endl;
+        std::cout << "Capacité: " << config.Capacity[vehicle] << " Limite de temps: " << config.HardTimeLimit[vehicle]
+                  << std::endl;
+    }
+
     // Vérifier la capacité et la limite de temps
     return load + config.Demand[client] <= config.Capacity[vehicle] && totalTime <= config.HardTimeLimit[vehicle];
 }
 
-bool TabouSearch::canAccommodateShortTerm(int client, int vehicle) {
-//    cout << "Essai du client: " << client << " avec le véhicule short-term: " << vehicle << endl;
+bool TabouSearch::canAssignShortTerm(int client, int vehicle) {
+    if (verbose) {
+        std::cout << "Essai du client: " << client << " avec le véhicule short-term: " << vehicle << std::endl;
+    }
+
+    float limiteDistance = config.HardDistanceLimitShortTermVehicle[vehicle];
+
     // Si le véhicule a une limite de distance, vérifier cette limite
-    if (config.HardDistanceLimitShortTermVehicle[vehicle] > 0.0) {
+    if (limiteDistance > 0.0) {
         float totalDistance = config.dist[0 * config.nbVertex + client];
-        return totalDistance <= config.HardDistanceLimitShortTermVehicle[vehicle];
+        return totalDistance <= limiteDistance;
     }
 
     // Si le véhicule à court terme n'a de limite de distance hard, retourner vrai
@@ -109,11 +146,10 @@ float TabouSearch::run() {
     displaySolution(solution_opti);
     cout << endl;
     float cost = calculateCost(solution_opti);
-    cout << endl;
     cout << "Prix optimal : " << cost << endl << endl;
 
     this->currentSolution = this->generateInitialSolution();
-    cout << "Solution initiale: " << endl;
+    cout << "Solution initiale: " << endl << endl;
     displaySolution(this->currentSolution);
     this->bestSolution = this->currentSolution;
     this->bestCost = this->calculateCost(this->currentSolution);
@@ -156,12 +192,23 @@ float TabouSearch::run() {
 }
 
 void TabouSearch::displaySolution(const std::vector<std::vector<int>> &solution) const {
+    if (verbose) {
+        std::cout << "Affichage de la solution..." << std::endl;
+    }
+
+    if (solution.empty()) {
+        std::cout << "La solution est vide." << std::endl;
+        return;
+    }
+
     for (int i = 0; i < solution.size(); ++i) {
         if (solution[i].size() == 1) {
-            std::cout << "Le véhicule " << i << " ne fait pas de tournée.\n";
+            std::cout << "Le véhicule " << i << " ne fait pas de tournée." << std::endl;
             continue;
         }
+
         std::cout << "Le véhicule " << i << " fait la tournée: ";
+
         for (int j = 0; j < solution[i].size(); ++j) {
             std::cout << solution[i][j];
             if (j < solution[i].size() - 1) {
@@ -184,6 +231,9 @@ void TabouSearch::displaySolution(const std::vector<std::vector<int>> &solution)
 
 
 float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) {
+    if (verbose) {
+        std::cout << "Calcul du coût de la solution..." << std::endl;
+    }
     float totalCost = 0.0f;
     for (const auto &vehicleTour: solution) {
         if (vehicleTour.size() == 1) continue; // Skip empty tours
@@ -203,9 +253,11 @@ float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) 
             // Short-term vehicle, adjust index for short-term list
             int shortTermIndex = vehicleIndex - config.nbVehicle;
             tourCost += config.fixedCostShortTermVehicle[shortTermIndex];
-            cout << "Coût de la tournée du véhicule short-term " << vehicleIndex << ": " << tourCost << endl;
-            cout << "Coût fixe : " << config.fixedCostShortTermVehicle[shortTermIndex] << endl;
-            cout << "Coût total: " << totalCost << endl;
+            if (verbose) {
+                cout << "Coût de la tournée du véhicule short-term " << vehicleIndex << ": " << tourCost << endl;
+                cout << "Coût fixe : " << config.fixedCostShortTermVehicle[shortTermIndex] << endl;
+                cout << "Coût total: " << totalCost << endl;
+            }
             totalCost += tourCost;
             continue; // Skip the rest of the cost calculation for short-term vehicles
         }
@@ -244,18 +296,20 @@ float TabouSearch::calculateCost(const std::vector<std::vector<int>> &solution) 
         }
 
         totalCost += tourCost;
-        cout << "Coût de la tournée du véhicule long-term " << vehicleIndex << ": " << tourCost << endl;
-        cout << "Coût total: " << totalCost << endl;
-        cout << "Coût fixe : " << config.fixedCostVehicle[vehicleIndex] << endl;
-        cout << "Temps total de la tournée: " << totalTime << endl;
-        cout << "Distance totale de la tournée: " << totalDistance << endl;
-        cout << "Temps extra: " << totalTime - config.SoftTimeLimit[vehicleIndex] << endl;
-        cout << "Distance extra: " << totalDistance - config.SoftDistanceLimit[vehicleIndex] << endl;
-        cout << "Prix temps extra: "
-             << max((totalTime - config.SoftTimeLimit[vehicleIndex]) * config.timePenalty[vehicleIndex], 0.0f)
-             << endl;
-        cout << "Prix distance extra: " << max((totalDistance - config.SoftDistanceLimit[vehicleIndex]) *
-                                               config.distancePenalty[vehicleIndex], .0f) << endl << endl;
+        if (verbose) {
+            cout << "Coût de la tournée du véhicule long-term " << vehicleIndex << ": " << tourCost << endl;
+            cout << "Coût total: " << totalCost << endl;
+            cout << "Coût fixe : " << config.fixedCostVehicle[vehicleIndex] << endl;
+            cout << "Temps total de la tournée: " << totalTime << endl;
+            cout << "Distance totale de la tournée: " << totalDistance << endl;
+            cout << "Temps extra: " << totalTime - config.SoftTimeLimit[vehicleIndex] << endl;
+            cout << "Distance extra: " << totalDistance - config.SoftDistanceLimit[vehicleIndex] << endl;
+            cout << "Prix temps extra: "
+                 << max((totalTime - config.SoftTimeLimit[vehicleIndex]) * config.timePenalty[vehicleIndex], 0.0f)
+                 << endl;
+            cout << "Prix distance extra: " << max((totalDistance - config.SoftDistanceLimit[vehicleIndex]) *
+                                                   config.distancePenalty[vehicleIndex], .0f) << endl << endl;
+        }
     }
     return totalCost;
 }

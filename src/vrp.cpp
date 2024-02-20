@@ -47,7 +47,7 @@ int main(int argc, char *argv[]){
     std::cout << "CPLEX  Solver  Result : " << CPlex_score << " in " << elapsed_CPlex.count() << " s" << std::endl;*/
 
     // Solve the problem with the tabou search
-    float Tabou_score = TabouSearch(config).run();
+    float Tabou_score = TabouSearch(config, 1000, 10, verbose).run();
     auto end_Tabou = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_Tabou = end_Tabou - end_import;
     std::cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << std::endl;
