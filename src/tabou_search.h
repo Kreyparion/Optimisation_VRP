@@ -23,11 +23,12 @@ private:
 
     vector<vector<int>> generateInitialSolution();
     float calculateCost(const vector<vector<int>>& solution);
-    vector<pair<int, int>> generateCandidateMoves();
+    vector<pair<pair<int, int>, pair<int, int>>> generateCandidateMoves();
     void displaySolution(const vector<vector<int>>& solution) const;
     bool canAssignLongTerm(const vector<int>& tour, int client, int vehicle);
     bool canAssignShortTerm(int client, int vehicle);
     void applyMove(pair<int, int> move);
+    bool isValidMove(int client, int fromVehicle, int toVehicle);
     bool isTabou(const pair<int, int>& move);
     void updateTabouList(const pair<int, int>& move);
     void decrementTabouTenure();

@@ -2,11 +2,13 @@
 
 #include <utility>
 
+using namespace std;
+
 // Implémentation des fonctions de la classe TabouSearch
 
 // Initialisation des membres de la classe si nécessaire
 TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bool verbose) :
-        config(move(config)),
+        config(std::move(config)),
         num_iterations(num_iterations),
         tabou_tenure(tabou_tenure),
         verbose(verbose) {}
@@ -134,19 +136,19 @@ bool TabouSearch::canAssignShortTerm(int client, int vehicle) {
 
 float TabouSearch::run() {
     cout << "Début du programme" << endl << endl;
-    vector<vector<int>> solution_opti = {
+/*    vector<vector<int>> solution_opti = {
             {0, 10, 8, 6, 9, 7, 5},
             {0, 4,  2, 3},
             {0},
             {0, 1},
             {0}
-    };
+    };*/
 
-    cout << "Solution optimale: " << endl << endl;
+/*    cout << "Solution optimale: " << endl << endl;
     displaySolution(solution_opti);
     cout << endl;
     float cost = calculateCost(solution_opti);
-    cout << "Prix optimal : " << cost << endl << endl;
+    cout << "Prix optimal : " << cost << endl << endl;*/
 
     this->currentSolution = this->generateInitialSolution();
     cout << "Solution initiale: " << endl << endl;
@@ -155,7 +157,7 @@ float TabouSearch::run() {
     this->bestCost = this->calculateCost(this->currentSolution);
     cout << "Prix initial: " << this->bestCost << endl << endl;
 
-    /*for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
+    for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
         auto candidateMoves = this->generateCandidateMoves();
         cout << "Itération " << iteration << " - Nombre de mouvements candidats: " << candidateMoves.size() << endl;
         pair<int, int> bestMove;
@@ -186,7 +188,7 @@ float TabouSearch::run() {
         }
 
         // Gestion de la durée de vie de la liste tabou pourrait être ajoutée ici
-    }*/
+    }
 
     return this->bestCost;
 }
@@ -314,15 +316,108 @@ float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
     return totalCost;
 }
 
-// Génère une liste de mouvements candidats
-vector<pair<int, int>> TabouSearch::generateCandidateMoves() {
-    vector<pair<int, int>> moves;
-    for (size_t i = 0; i < this->currentSolution.size() - 1; ++i) {
-        for (size_t j = i + 1; j < currentSolution.size(); ++j) {
-            moves.emplace_back(i, j);
+/*void TabouSearch::generateCandidateMoves() {
+    vector<Move> candidateMoves;
+
+    // Générer des mouvements pour les véhicules à long terme
+    for (int vehicle = 0; vehicle < config.nbVehicle; ++vehicle) {
+        // Pour chaque client non encore assigné ou pour des échanges possibles
+        for (int client = 1; client < config.nbVertex; ++client) {
+            if (canAssignLongTerm(currentSolution[vehicle], client, vehicle)) {
+                // Ajouter le client, remplacer un client existant, ou échanger entre tournées
+                Move move = ...; // définir le mouvement
+                candidateMoves.push_back(move);
+            }
         }
     }
+
+    // Générer des mouvements pour les véhicules à court terme
+    for (int vehicle = config.nbVehicle; vehicle < config.nbVehicle + config.nbShortTermVehicle; ++vehicle) {
+        // Même logique mais adaptée aux contraintes des véhicules à court terme
+        for (int client = 1; client < config.nbVertex; ++client) {
+            if (canAssignShortTerm(client, vehicle)) {
+                Move move = ...; // définir le mouvement
+                candidateMoves.push_back(move);
+            }
+        }
+    }
+
+    // Évaluer et sélectionner les meilleurs mouvements
+    evaluateAndSelectMoves(candidateMoves);
+}*/
+
+
+// Génère une liste de mouvements candidats
+vector<pair<pair<int, int>, pair<int, int>>> TabouSearch::generateCandidateMoves() {
+    vector<pair<pair<int, int>, pair<int, int>>> moves;
+
+    // Parcourir chaque tournée pour identifier les mouvements potentiels
+    for (size_t i = 0; i < this->currentSolution.size(); ++i) {
+        for (size_t j = 0; j < this->currentSolution[i].size(); ++j) {
+            // Déplacement d'un client vers une autre tournée
+            for (size_t k = 0; k < this->currentSolution.size(); ++k) {
+                if (k != i) { // Ne pas déplacer dans la même tournée
+                    if (isValidMove(i, j, k)) { // Vérifier si le mouvement est valide
+                        moves.push_back({{i, j}, {k, -1}}); // -1 indique un ajout sans position spécifique dans la tournée cible
+                    }
+                }
+            }
+
+            // Échange de clients entre tournées différentes ou au sein de la même tournée
+            for (size_t k = 0; k < this->currentSolution.size(); ++k) {
+                for (size_t l = (k == i ? j+1 : 0); l < this->currentSolution[k].size(); ++l) {
+                    if (isValidMove(i, j, k, l)) { // Vérifier si l'échange est valide
+                        moves.push_back({{i, j}, {k, l}});
+                    }
+                }
+            }
+        }
+    }
+
     return moves;
+}
+
+bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
+    // Identifier si les véhicules sont à long ou court terme
+    bool isFromVehicleLongTerm = fromVehicle < config.nbVehicle;
+    bool isToVehicleLongTerm = toVehicle < config.nbVehicle;
+
+    // Calculer la demande totale et le temps pour le véhicule de destination
+    float load = 0.0, totalDistance = 0.0, totalTime;
+    vector<int> tour; // Ici, vous devez récupérer la tournée actuelle du véhicule de destination
+
+    // Pour simplifier, supposons tour contient les clients actuels du véhicule de destination
+    // tour = solution[toVehicle]; // Supposons une structure où solution est un vecteur de vecteurs d'entiers
+
+    int prevLocation = 0; // Le dépôt est le point de départ
+
+    // Calculer la charge, la distance totale et le temps pour la tournée actuelle
+    for (int location: tour) {
+        load += config.Demand[location];
+        totalDistance += config.dist[prevLocation * config.nbVertex + location];
+        prevLocation = location;
+    }
+
+    // Ajouter les calculs pour le nouveau client
+    load += config.Demand[client];
+    totalDistance += config.dist[prevLocation * config.nbVertex + client] + config.dist[client * config.nbVertex + 0]; // Comprend le retour au dépôt
+    totalTime = totalDistance / config.speed[toVehicle];
+
+    // Vérification pour un véhicule long terme
+    if (isToVehicleLongTerm) {
+        if (load > config.Capacity[toVehicle] || totalTime > config.HardTimeLimit[toVehicle]) {
+            return false; // Ne respecte pas la capacité ou la limite de temps
+        }
+    } else { // Vérification pour un véhicule court terme
+        // Vérifiez simplement la distance jusqu'au client puisque canAssignShortTerm ne prend en compte que cela
+        float distanceToClient = config.dist[0 * config.nbVertex + client];
+        if (config.HardDistanceLimitShortTermVehicle[toVehicle] > 0 && distanceToClient > config.HardDistanceLimitShortTermVehicle[toVehicle]) {
+            return false; // Ne respecte pas la limite de distance hard
+        }
+    }
+
+    // Si toutes les vérifications sont passées, le mouvement est valide
+    return true;
 }
 
 // Applique un mouvement à la solution actuelle
