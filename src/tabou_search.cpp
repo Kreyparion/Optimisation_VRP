@@ -13,7 +13,7 @@ TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bo
         tabou_tenure(tabou_tenure),
         verbose(verbose) {}
 
-vector<vector<int>> TabouSearch::generateInitialSolution() {
+/*vector<vector<int>> TabouSearch::generateInitialSolution() {
     if (verbose) {
         cout << "Génération de la solution initiale..." << endl;
     }
@@ -49,7 +49,7 @@ vector<vector<int>> TabouSearch::generateInitialSolution() {
                     canAssignShortTerm(client, vehicule)) { // Un véhicule à court terme peut prendre un seul client
                     if (verbose) {
                         cout << "Client: " << client << " assigné au véhicule short-term: " << vehicule
-                                  << endl;
+                             << endl;
                     }
                     solution[vehicule].push_back(client);
                     assigned = true;
@@ -73,20 +73,70 @@ vector<vector<int>> TabouSearch::generateInitialSolution() {
     }
 
     return solution;
+}*/
+
+vector<vector<int>> TabouSearch::generateInitialSolution() {
+    if (verbose) {
+        cout << "Génération de la solution initiale avec l'heuristique du plus proche voisin..." << endl;
+    }
+
+    vector<vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle,
+                                 vector<int>(1, 0)); // Initialisation des tournées avec le dépôt
+
+    // Initialiser un vecteur pour suivre quels clients ont été assignés
+    vector<bool> assignedClients(config.nbVertex, false); // false par défaut, true si assigné
+
+    // Pour chaque véhicule
+    for (int vehicule = 0; vehicule < config.nbVehicle + config.nbShortTermVehicle; ++vehicule) {
+        bool canAssignMore = true; // Contrôle si le véhicule peut prendre plus de clients
+
+        while (canAssignMore) {
+            int lastClient = solution[vehicule].back();
+            int nearestClient = -1;
+            double nearestDistance = numeric_limits<double>::max();
+
+            // Trouver le client non assigné le plus proche
+            for (int client = 1; client < config.nbVertex; ++client) {
+                if (!assignedClients[client]) {
+                    double distance = config.dist[lastClient * config.nbVertex +
+                                                  client]; // À implémenter selon votre structure de données
+                    if (distance < nearestDistance) {
+                        nearestClient = client;
+                        nearestDistance = distance;
+                    }
+                }
+            }
+
+            // Essayer d'assigner le client le plus proche au véhicule courant
+            if (nearestClient != -1 &&
+                canAssignClient(solution[vehicule], nearestClient, vehicule)) { // `canAssignClient` à adapter
+                solution[vehicule].push_back(nearestClient);
+                assignedClients[nearestClient] = true;
+            } else {
+                canAssignMore = false; // Aucun client proche ou capacité atteinte
+            }
+        }
+    }
+
+    // Vérifier si tous les clients ont été assignés
+    if (find(assignedClients.begin() + 1, assignedClients.end(), false) != assignedClients.end()) {
+        displaySolution(solution);
+        throw runtime_error(
+                "Impossible d'assigner tous les clients. Capacité insuffisante ou contraintes trop strictes.");
+    }
+
+    return solution;
+}
+
+bool TabouSearch::canAssignClient(vector<int> &vector, int client, int vehicule) {
+    return vehicule < config.nbVehicle ? canAssignLongTerm(vector, client, vehicule) :
+    canAssignShortTerm(vector, client,vehicule);
 }
 
 // Helper function pour vérifier si le véhicule peut prendre un autre client
 bool TabouSearch::canAssignLongTerm(const vector<int> &tour, int client, int vehicle) {
     if (verbose) {
-        cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << endl;
-    }
-
-    if (tour.size() == 1) {
-        // Si le véhicule n'a pas de clients, il peut prendre n'importe quel client
-        if (verbose) {
-            cout << "Le véhicule n'a pas de clients, donc le client peut être assigné." << endl;
-        }
-        return true;
+        cout << "Essai du client: " << client << " avec le véhicule long-term: " << vehicle << endl << endl;
     }
 
     float load = 0.0, totalDistance = 0.0, totalTime;
@@ -105,20 +155,29 @@ bool TabouSearch::canAssignLongTerm(const vector<int> &tour, int client, int veh
 
     if (verbose) {
         cout << "Charge avant le client: " << load << " Distance totale avant le client: " << totalDistance
-                  << endl;
+             << endl;
         cout << "Charge apres: " << load + config.Demand[client] << " Distance totale apres: " << totalDistance
-                  << " Temps total: " << totalTime << endl;
+             << " Temps total: " << totalTime << endl;
         cout << "Capacité: " << config.Capacity[vehicle] << " Limite de temps: " << config.HardTimeLimit[vehicle]
-                  << endl;
+             << endl << endl;
     }
 
     // Vérifier la capacité et la limite de temps
     return load + config.Demand[client] <= config.Capacity[vehicle] && totalTime <= config.HardTimeLimit[vehicle];
 }
 
-bool TabouSearch::canAssignShortTerm(int client, int vehicle) {
+
+bool TabouSearch::canAssignShortTerm(const vector<int> &tour, int client, int vehicle) {
     if (verbose) {
         cout << "Essai du client: " << client << " avec le véhicule short-term: " << vehicle << endl;
+    }
+
+    if (tour.size() == 2) {
+        // Si le véhicule a un client, il est complet
+        if (verbose) {
+            cout << "Le véhicule short-term est plein, donc le client ne peut être assigné." << endl;
+        }
+        return false;
     }
 
     float limiteDistance = config.HardDistanceLimitShortTermVehicle[vehicle];
@@ -132,7 +191,6 @@ bool TabouSearch::canAssignShortTerm(int client, int vehicle) {
     // Si le véhicule à court terme n'a de limite de distance hard, retourner vrai
     return true;
 }
-
 
 float TabouSearch::run() {
     cout << "Début du programme" << endl << endl;
@@ -157,7 +215,7 @@ float TabouSearch::run() {
     this->bestCost = this->calculateCost(this->currentSolution);
     cout << "Prix initial: " << this->bestCost << endl << endl;
 
-    for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
+    /*for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
         auto candidateMoves = this->generateCandidateMoves();
         cout << "Itération " << iteration << " - Nombre de mouvements candidats: " << candidateMoves.size() << endl;
         pair<int, int> bestMove;
@@ -188,10 +246,11 @@ float TabouSearch::run() {
         }
 
         // Gestion de la durée de vie de la liste tabou pourrait être ajoutée ici
-    }
+    }*/
 
     return this->bestCost;
 }
+
 
 void TabouSearch::displaySolution(const vector<vector<int>> &solution) const {
     if (verbose) {
@@ -230,7 +289,6 @@ void TabouSearch::displaySolution(const vector<vector<int>> &solution) const {
         cout << "\n";
     }
 }
-
 
 float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
     if (verbose) {
@@ -346,7 +404,6 @@ float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
     evaluateAndSelectMoves(candidateMoves);
 }*/
 
-
 // Génère une liste de mouvements candidats
 vector<pair<pair<int, int>, pair<int, int>>> TabouSearch::generateCandidateMoves() {
     vector<pair<pair<int, int>, pair<int, int>>> moves;
@@ -358,19 +415,20 @@ vector<pair<pair<int, int>, pair<int, int>>> TabouSearch::generateCandidateMoves
             for (size_t k = 0; k < this->currentSolution.size(); ++k) {
                 if (k != i) { // Ne pas déplacer dans la même tournée
                     if (isValidMove(i, j, k)) { // Vérifier si le mouvement est valide
-                        moves.push_back({{i, j}, {k, -1}}); // -1 indique un ajout sans position spécifique dans la tournée cible
+                        moves.push_back({{i, j},
+                                         {k, -1}}); // -1 indique un ajout sans position spécifique dans la tournée cible
                     }
                 }
             }
 
             // Échange de clients entre tournées différentes ou au sein de la même tournée
-            for (size_t k = 0; k < this->currentSolution.size(); ++k) {
+            /*for (size_t k = 0; k < this->currentSolution.size(); ++k) {
                 for (size_t l = (k == i ? j+1 : 0); l < this->currentSolution[k].size(); ++l) {
                     if (isValidMove(i, j, k, l)) { // Vérifier si l'échange est valide
                         moves.push_back({{i, j}, {k, l}});
                     }
                 }
-            }
+            }*/
         }
     }
 
@@ -400,7 +458,8 @@ bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
 
     // Ajouter les calculs pour le nouveau client
     load += config.Demand[client];
-    totalDistance += config.dist[prevLocation * config.nbVertex + client] + config.dist[client * config.nbVertex + 0]; // Comprend le retour au dépôt
+    totalDistance += config.dist[prevLocation * config.nbVertex + client] +
+                     config.dist[client * config.nbVertex + 0]; // Comprend le retour au dépôt
     totalTime = totalDistance / config.speed[toVehicle];
 
     // Vérification pour un véhicule long terme
@@ -411,7 +470,8 @@ bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
     } else { // Vérification pour un véhicule court terme
         // Vérifiez simplement la distance jusqu'au client puisque canAssignShortTerm ne prend en compte que cela
         float distanceToClient = config.dist[0 * config.nbVertex + client];
-        if (config.HardDistanceLimitShortTermVehicle[toVehicle] > 0 && distanceToClient > config.HardDistanceLimitShortTermVehicle[toVehicle]) {
+        if (config.HardDistanceLimitShortTermVehicle[toVehicle] > 0 &&
+            distanceToClient > config.HardDistanceLimitShortTermVehicle[toVehicle]) {
             return false; // Ne respecte pas la limite de distance hard
         }
     }

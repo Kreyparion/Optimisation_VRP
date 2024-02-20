@@ -26,10 +26,12 @@ private:
     vector<pair<pair<int, int>, pair<int, int>>> generateCandidateMoves();
     void displaySolution(const vector<vector<int>>& solution) const;
     bool canAssignLongTerm(const vector<int>& tour, int client, int vehicle);
-    bool canAssignShortTerm(int client, int vehicle);
+    bool canAssignShortTerm(const vector<int> &tour, int client, int vehicle);
+    bool canAssignClient(vector<int> &vector, int client, int vehicule);
     void applyMove(pair<int, int> move);
     bool isValidMove(int client, int fromVehicle, int toVehicle);
     bool isTabou(const pair<int, int>& move);
     void updateTabouList(const pair<int, int>& move);
     void decrementTabouTenure();
+
 };

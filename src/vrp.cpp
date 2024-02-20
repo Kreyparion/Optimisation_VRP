@@ -29,7 +29,7 @@ int main(int argc, char *argv[]){
     chrono::duration<double> elapsed_import = end_import - start;
 //    cout << "Data importation done in " << elapsed_import.count() << " s" << endl;
 
-/*    // Solve the problem with the heuristic solver
+    // Solve the problem with the heuristic solver
     float heuristic_solver_score = heuristic_solver(config, verbose);
     auto end_heuristic_solver = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]){
     chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_heuristic_solver;
     cout << "Exact Algorithm Result: " << exact_solver_score << " in " << elapsed_exact_solver.count() << " s" << endl;
 
-    // Solve the problem with the CPLEX solver
+    /*// Solve the problem with the CPLEX solver
     float CPlex_score = opti(config, verbose);
     auto end_CPlex = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed_CPlex = end_CPlex - end_exact_solver;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
     // Solve the problem with the tabou search
     float Tabou_score = TabouSearch(config, 1000, 10, verbose).run();
     auto end_Tabou = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed_Tabou = end_Tabou - end_import;
+    chrono::duration<double> elapsed_Tabou = end_Tabou - end_exact_solver;
     cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << endl;
 
     return 0;
