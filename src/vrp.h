@@ -93,3 +93,24 @@ float compute_and_check_solution(Config& config, Solution& sol){
     }
     return score;
 }
+
+void display_solution(Config& config, Solution& sol){
+    int n = sol.size();
+
+    for(int i=0; i<config.nbVehicle; i++){
+        int ni = sol[i].size();
+        if(ni != 0){
+            std::cout << "Vehicle " << i << ": 0 -> ";
+            for(int j=0; j<ni; j++){
+                std::cout << sol[i][j] << " -> ";
+            }
+            std::cout << "0" << std::endl;
+        }
+    }
+    for(int i=config.nbVehicle; i<n; i++){
+        int ni = sol[i].size();
+        if(ni != 0){
+            std::cout << "STV " << i - config.nbVehicle <<" visits: " << sol[i][0] << std::endl;
+        }
+    }
+}

@@ -4,7 +4,7 @@ project(VRP)
 set(CPLEX_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/cplex")
 set(CONCERT_DIR "/opt/ibm/ILOG/CPLEX_Studio2211/concert")
 
-set(PROJECT_CFLAGS "-Wall -std=c++17 -O0")
+set(PROJECT_CFLAGS "-Wall -std=c++17 -O3")
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -13,7 +13,6 @@ if (OPENMP_FOUND)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
 endif ()
 
-#file(GLOB SOURCES "src/*.cpp" "src/*.h")
 add_executable(vrp vrp.cpp)
 
 target_include_directories(vrp PUBLIC ${CPLEX_DIR}/include ${CONCERT_DIR}/include)
