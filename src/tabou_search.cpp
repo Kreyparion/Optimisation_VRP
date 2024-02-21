@@ -7,10 +7,10 @@ using namespace std;
 // Implémentation des fonctions de la classe TabouSearch
 
 // Initialisation des membres de la classe si nécessaire
-TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bool verbose) :
+TabouSearch::TabouSearch(Config config, int num_iterations, int tabouDuration, bool verbose) :
         config(std::move(config)),
         num_iterations(num_iterations),
-        tabou_tenure(tabou_tenure),
+        tabouDuration(tabouDuration),
         verbose(verbose) {}
 
 vector<vector<int>> TabouSearch::generateInitialSolution() {
@@ -72,11 +72,6 @@ vector<vector<int>> TabouSearch::generateInitialSolution() {
     return solution;
 }
 
-bool TabouSearch::canAssignClient(vector<int> &vector, int client, int vehicule) {
-    return vehicule < config.nbVehicle ? canAssignLongTerm(vector, client, vehicule) :
-           canAssignShortTerm(vector, client, vehicule);
-}
-
 // Helper function pour vérifier si le véhicule peut prendre un autre client
 bool TabouSearch::canAssignLongTerm(const vector<int> &tour, int client, int vehicle) {
     if (verbose) {
@@ -136,40 +131,76 @@ bool TabouSearch::canAssignShortTerm(const vector<int> &tour, int client, int ve
     return true;
 }
 
-float TabouSearch::run() {
-    cout << "Début du programme" << endl << endl;
-/*    vector<vector<int>> solution_opti = {
+/*cout << "Début du programme" << endl << endl;
+    vector<vector<int>> solution_opti = {
             {0, 10, 8, 6, 9, 7, 5},
             {0, 4,  2, 3},
             {0},
             {0, 1},
             {0}
-    };*/
+    };
 
-/*    cout << "Solution optimale: " << endl << endl;
+    cout << "Solution optimale: " << endl << endl;
     displaySolution(solution_opti);
     cout << endl;
     float cost = calculateCost(solution_opti);
-    cout << "Prix optimal : " << cost << endl << endl;*/
+    cout << "Prix optimal : " << cost << endl << endl;
 
     this->currentSolution = this->generateInitialSolution();
     cout << "Solution initiale: " << endl << endl;
     displaySolution(this->currentSolution);
     this->bestSolution = this->currentSolution;
     this->bestCost = this->calculateCost(this->currentSolution);
-    cout << "Prix initial: " << this->bestCost << endl << endl;
+    cout << "Prix initial: " << this->bestCost << endl << endl;*/
 
-    /*for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
-        auto candidateMoves = this->generateCandidateMoves();
-        cout << "Itération " << iteration << " - Nombre de mouvements candidats: " << candidateMoves.size() << endl;
-        pair<int, int> bestMove;
+float TabouSearch::run() {
+    cout << "Début du programme" << endl << endl;
+
+    // Génération de la solution initiale
+    this->currentSolution = this->generateInitialSolution();
+    cout << "Solution initiale générée." << endl << endl;
+    displaySolution(this->currentSolution);
+
+    // Initialisation du meilleur coût et de la meilleure solution
+    this->bestSolution = this->currentSolution;
+    this->bestCost = this->calculateCost(this->currentSolution);
+    cout << "Coût initial: " << this->bestCost << endl << endl;
+
+    // Initialisation de la liste tabou
+    this->tabouList.clear();
+
+    int iterationsWithoutImprovement = 0; // Ajout d'un compteur pour les itérations sans amélioration
+
+    for (int iteration = 0; iteration < this->num_iterations; ++iteration) {
+        cout << "Début de l'itération: " << iteration << endl;
+
+        auto candidateMoves = this->generateCandidateMoves(currentSolution);
+        cout << "Solution à l'itération : " << iteration << endl;
+        displaySolution(this->currentSolution);
+
+        cout << "Nombre de mouvements candidats générés: " << candidateMoves.size() << endl;
+
+        pair<pair<int, int>, pair<int, int>> bestMove({{-1, -1},
+                                                       {-1, -1}});
+
         float bestMoveCost = numeric_limits<float>::max();
+
+        // Ajout pour le débogage :
+        for (const auto &move: candidateMoves) {
+            cout << "Mouvement candidat: (" << move.first.first << "," << move.first.second << ") -> ("
+                 << move.second.first << "," << move.second.second << ")" << endl;
+        }
 
         for (const auto &move: candidateMoves) {
             if (!this->isTabou(move)) {
-                // Appliquer temporairement le mouvement
+                // Appliquer temporairement le mouvement pour évaluer son coût
                 applyMove(move);
                 float tempCost = this->calculateCost(this->currentSolution);
+                cout << "Solution temporaire après application du mouvement: ";
+                cout << "(" << move.first.first << "," << move.first.second << ") -> ";
+                cout << "(" << move.second.first << "," << move.second.second << ")" << endl;
+                displaySolution(this->currentSolution);
+                cout << "Coût temporaire après application du mouvement: " << tempCost << endl;
 
                 // Annuler le mouvement
                 applyMove(move);
@@ -177,24 +208,60 @@ float TabouSearch::run() {
                 if (tempCost < bestMoveCost) {
                     bestMoveCost = tempCost;
                     bestMove = move;
+                    cout << "Nouveau meilleur mouvement trouvé avec un coût de: " << bestMoveCost << endl;
                 }
             }
         }
 
-        // Si un mouvement améliorant a été trouvé, l'appliquer et mettre à jour la liste tabou
-        if (bestMoveCost < this->bestCost) {
+        // Si un meilleur mouvement a été trouvé, l'appliquer et mettre à jour la solution et la liste tabou
+        if (bestMove.first.first != -1) {
+            cout << "Meilleur mouvement sélectionné pour application: ";
+            cout << "(" << bestMove.first.first << "," << bestMove.first.second << ") -> ";
+            cout << "(" << bestMove.second.first << "," << bestMove.second.second << ")" << " avec un coût de: "
+                 << bestMoveCost << endl;
+
             applyMove(bestMove);
-            this->bestCost = bestMoveCost;
-            this->bestSolution = this->currentSolution;
             updateTabouList(bestMove);
+
+            // Ajout pour le débogage :
+            cout << "Mouvement appliqué et ajouté à la liste tabou." << endl;
+
+            if (bestMoveCost < this->bestCost) {
+                this->bestCost = bestMoveCost;
+                this->bestSolution = this->currentSolution;
+                cout << "Nouveau meilleur coût trouvé: " << this->bestCost << " à l'itération " << iteration << endl;
+                iterationsWithoutImprovement = 0; // Réinitialisation du compteur
+            } else {
+                iterationsWithoutImprovement++;
+                cout << "Itération " << iteration << " sans amélioration. Total sans amélioration: "
+                     << iterationsWithoutImprovement << endl;
+            }
+        } else {
+            iterationsWithoutImprovement++;
+            cout << "Aucun mouvement améliorant trouvé." << endl;
         }
 
-        // Gestion de la durée de vie de la liste tabou pourrait être ajoutée ici
-    }*/
+        // Arrêter la recherche si aucune amélioration n'a été trouvée après 20 itérations
+        if (iterationsWithoutImprovement >= 20) {
+            cout << "Aucune amélioration après 20 itérations. Arrêt de la recherche." << endl;
+            displaySolution(this->currentSolution);
+            this->bestCost = this->calculateCost(this->currentSolution);
+            cout << "Coût final: " << this->bestCost << endl << endl;
+            break;
+        }
 
+        // Gérer la taille de la liste tabou pour éviter qu'elle ne devienne trop grande
+        if (this->tabouList.size() > this->tabouListMaxSize) {
+            this->tabouList.erase(this->tabouList.begin());
+            // Ajout pour le débogage :
+            cout << "Mouvement retiré de la liste tabou pour gérer la taille." << endl;
+        }
+
+    }
+
+    cout << "Recherche tabou terminée." << endl;
     return this->bestCost;
 }
-
 
 void TabouSearch::displaySolution(const vector<vector<int>> &solution) const {
     if (verbose) {
@@ -320,68 +387,37 @@ float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
     return totalCost;
 }
 
-/*void TabouSearch::generateCandidateMoves() {
-    vector<Move> candidateMoves;
-
-    // Générer des mouvements pour les véhicules à long terme
-    for (int vehicle = 0; vehicle < config.nbVehicle; ++vehicle) {
-        // Pour chaque client non encore assigné ou pour des échanges possibles
-        for (int client = 1; client < config.nbVertex; ++client) {
-            if (canAssignLongTerm(currentSolution[vehicle], client, vehicle)) {
-                // Ajouter le client, remplacer un client existant, ou échanger entre tournées
-                Move move = ...; // définir le mouvement
-                candidateMoves.push_back(move);
-            }
-        }
-    }
-
-    // Générer des mouvements pour les véhicules à court terme
-    for (int vehicle = config.nbVehicle; vehicle < config.nbVehicle + config.nbShortTermVehicle; ++vehicle) {
-        // Même logique mais adaptée aux contraintes des véhicules à court terme
-        for (int client = 1; client < config.nbVertex; ++client) {
-            if (canAssignShortTerm(client, vehicle)) {
-                Move move = ...; // définir le mouvement
-                candidateMoves.push_back(move);
-            }
-        }
-    }
-
-    // Évaluer et sélectionner les meilleurs mouvements
-    evaluateAndSelectMoves(candidateMoves);
-}*/
-
-// Génère une liste de mouvements candidats
-vector<pair<pair<int, int>, pair<int, int>>> TabouSearch::generateCandidateMoves() {
+vector<pair<pair<int, int>, pair<int, int>>> TabouSearch::generateCandidateMoves(const vector<vector<int>> &solution) {
     vector<pair<pair<int, int>, pair<int, int>>> moves;
+    for (int i = 0; i < solution.size(); ++i) {
+        for (int j = 1; j < solution[i].size(); ++j) { // Commence à 1 pour ignorer le dépôt
+            int clientA = solution[i][j];
 
-    // Parcourir chaque tournée pour identifier les mouvements potentiels
-    for (size_t i = 0; i < this->currentSolution.size(); ++i) {
-        for (size_t j = 0; j < this->currentSolution[i].size(); ++j) {
-            // Déplacement d'un client vers une autre tournée
-            for (size_t k = 0; k < this->currentSolution.size(); ++k) {
-                if (k != i) { // Ne pas déplacer dans la même tournée
-                    if (isValidMove(i, j, k)) { // Vérifier si le mouvement est valide
-                        moves.push_back({{i, j},
-                                         {k, -1}}); // -1 indique un ajout sans position spécifique dans la tournée cible
-                    }
+            // Générer des mouvements de transfert (ajouter à la fin d'une autre tournée)
+            for (int k = 0; k < solution.size(); ++k) {
+                if (k != i) { // Assurez-vous de ne pas choisir la même tournée
+                    moves.push_back({{i, j},
+                                     {k, -1}}); // -1 indique l'ajout à la fin de la tournée k
                 }
             }
 
-            // Échange de clients entre tournées différentes ou au sein de la même tournée
-            /*for (size_t k = 0; k < this->currentSolution.size(); ++k) {
-                for (size_t l = (k == i ? j+1 : 0); l < this->currentSolution[k].size(); ++l) {
-                    if (isValidMove(i, j, k, l)) { // Vérifier si l'échange est valide
-                        moves.push_back({{i, j}, {k, l}});
+            // Générer des mouvements d'échange comme précédemment
+            for (int k = i; k < solution.size(); ++k) {
+                for (int l = (i == k ? j + 1 : 1); l < solution[k].size(); ++l) {
+                    int clientB = solution[k][l];
+                    if (clientA != 0 && clientB != 0) {
+                        moves.push_back({{i, j},
+                                         {k, l}});
                     }
                 }
-            }*/
+            }
         }
     }
-
     return moves;
 }
 
-bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
+
+/*bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
     // Identifier si les véhicules sont à long ou court terme
     bool isFromVehicleLongTerm = fromVehicle < config.nbVehicle;
     bool isToVehicleLongTerm = toVehicle < config.nbVehicle;
@@ -424,30 +460,60 @@ bool TabouSearch::isValidMove(int client, int fromVehicle, int toVehicle) {
 
     // Si toutes les vérifications sont passées, le mouvement est valide
     return true;
-}
+}*/
 
 // Applique un mouvement à la solution actuelle
-void TabouSearch::applyMove(pair<int, int> move) {
-    swap(currentSolution[move.first], currentSolution[move.second]);
+void TabouSearch::applyMove(pair<pair<int, int>, pair<int, int>> move) {
+    // Extraire les indices du premier et du second client à échanger
+    int vehicle1 = move.first.first;
+    int position1 = move.first.second;
+    int vehicle2 = move.second.first;
+    int position2 = move.second.second;
+
+    // Vérifier si les positions sont valides avant de tenter le swap
+    if (vehicle1 < currentSolution.size() && position1 < currentSolution[vehicle1].size() &&
+        vehicle2 < currentSolution.size() && position2 < currentSolution[vehicle2].size()) {
+        // Appliquer le swap directement sur les éléments de currentSolution
+        std::swap(currentSolution[vehicle1][position1], currentSolution[vehicle2][position2]);
+    } else {
+        // Gérer l'erreur ou le cas invalide ici
+        std::cout << "Mouvement invalide : indices hors limites." << std::endl;
+    }
 }
 
-bool TabouSearch::isTabou(const pair<int, int> &move) {
-    for (auto &tabuMove: tabouList) {
-        if (tabuMove == move) {
-            return true;
+// Vérifie si un mouvement est dans la liste tabou
+bool TabouSearch::isTabou(pair<pair<int, int>, pair<int, int>> move) {
+    for (const auto &tabouMove: tabouList) {
+        if (tabouMove.first == move) {
+            return true; // Le mouvement est trouvé dans la liste tabou
         }
     }
-    return false;
+    return false; // Le mouvement n'est pas tabou
 }
 
-void TabouSearch::updateTabouList(const pair<int, int> &move) {
-    // Ajouter un nouveau mouvement à la liste tabou et retirer les anciens si nécessaire
-    tabouList.push_back(move);
-    if (tabouList.size() > tabou_tenure) {
-        tabouList.pop_front();
+// Ajoute un mouvement à la liste tabou avec une durée spécifiée
+void TabouSearch::addToTabouList(pair<pair<int, int>, pair<int, int>> move) {
+    if (tabouList.size() >= tabouListMaxSize) {
+        tabouList.pop_front(); // Supprime le plus ancien si la liste est pleine
+    }
+    tabouList.push_back(make_pair(move, tabouDuration)); // Ajoute le nouveau mouvement
+}
+
+// Réduit la durée de vie des mouvements tabous et supprime ceux expirés
+void TabouSearch::decrementTabouList() {
+    auto it = tabouList.begin();
+    while (it != tabouList.end()) {
+        --(it->second); // Décrémente la durée de vie
+        if (it->second <= 0) {
+            it = tabouList.erase(it); // Supprime si expiré
+        } else {
+            ++it;
+        }
     }
 }
 
-void TabouSearch::decrementTabouTenure() {
-    // Décrémenter la durée de vie des éléments de la liste tabou
+// Mettre à jour la liste tabou après chaque itération
+void TabouSearch::updateTabouList(pair<pair<int, int>, pair<int, int>> move) {
+    addToTabouList(move);
+    decrementTabouList();
 }
