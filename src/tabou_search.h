@@ -8,7 +8,7 @@
 
 class TabouSearch {
 public:
-    explicit TabouSearch(Config config, int num_iterations = 1000, int tabouDuration = 10, bool verbose = false);
+    explicit TabouSearch(Config config, int num_iterations = 1000, int tabouDuration = 10, int verbose = false);
     float run();
 
 private:
@@ -20,7 +20,7 @@ private:
     int num_iterations;
     int tabouDuration;
     int tabouListMaxSize = 10;
-    bool verbose;
+    int verbose;
 
     vector<vector<int>> generateInitialSolution();
     float calculateCost(const vector<vector<int>>& solution);
