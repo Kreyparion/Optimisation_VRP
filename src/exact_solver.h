@@ -2,7 +2,8 @@
 #include <vector>
 #include <array>
 #include <memory>
-
+#include "config.h"
+#include "vrp.h"
 
 
 using Partition = std::vector<int>;
@@ -11,9 +12,12 @@ using ListOfNodes = std::vector<int>;
 using Permutation = std::vector<int>;
 
 using Score_ptr = std::shared_ptr<float>;
+using Partition_ptr = std::shared_ptr<Partition>;
 
 using TSPResults = std::vector<float>;
 using HKResults = std::vector<float>;
+using HKPredecessors = std::vector<int>;
+using Path = std::vector<int>;
 
 
 /**
@@ -69,7 +73,7 @@ TSPResults fill_results_brute_force(Config& config, int verbose);
  * @param set The set of vertices to visit
  * @return float The shortest way to visit the set of vertices and end at i
  */
-float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int set);
+float compute_held_karp_rec(Config& config, HKResults& hk_results, HKPredecessors& hk_pred, int i, int set);
 
 /**
  * @brief Compute the Held-Karp algorithm with dynamic programming
@@ -77,7 +81,7 @@ float compute_held_karp_rec(Config& config, HKResults& hk_results, int i, int se
  * @param config The configuration of the problem
  * @param hk_results The results of the Held-Karp algorithm
  */
-void compute_held_karp(Config& config, HKResults& hk_results);
+void compute_held_karp(Config& config, HKResults& hk_results, HKPredecessors& hk_pred);
 
 /**
  * @brief Compute the Held-Karp algorithm and fill the table for every subset of vertices
@@ -124,7 +128,7 @@ bool allowed_partition(Config& config, TSPResults& results, Partition partition,
  * @param capacities The amount of capacity used by every vehicle
  * @param best_score The best score found so far
  */
-void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score);
+void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partition partition, int vertex_num, int vertex_num_pow, Capacities capacities, Score_ptr best_score, Partition_ptr best_partition);
 
 /**
  * @brief Solve the partitionning problem by brute force
@@ -133,7 +137,7 @@ void solve_partitionning_problem_rec(Config& config, TSPResults& results, Partit
  * @param results The TSP solution for every subset of vertices
  * @return float The best score found
  */
-float solve_partitionning_problem(Config& config, TSPResults& results);
+Partition solve_partitionning_problem(Config& config, TSPResults& results);
 
 /**
  * @brief Launch the exact solver for the problem
@@ -142,5 +146,5 @@ float solve_partitionning_problem(Config& config, TSPResults& results);
  * @param verbose The verbose level between 0 and 2
  * @return float The best score found
  */
-float exact_solver(Config& config, int verbose);
+Solution exact_solver(Config& config, int verbose);
 

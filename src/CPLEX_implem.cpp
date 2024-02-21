@@ -20,9 +20,10 @@ IloNumVarArray u; // u[i][k] = variable for subtour elimination for vehicle k
  * @param verbose The verbosity level between 0 and 2
  * @return float The best score found
  */
-float opti(Config& config, int verbose = 0){
+Solution opti(Config& config, int verbose = 0){
     IloEnv env;
     float best_score = 100000000.0;
+    Solution solution = init_solution(config.nbVehicle + config.nbShortTermVehicle);
    try {
         // Bounds for the decision variables
         x = IloIntVarArray(env, config.nbVertex*config.nbVertex*config.nbVehicle, 0, 1);
@@ -190,22 +191,49 @@ float opti(Config& config, int verbose = 0){
 
         cplex.solve();
         best_score = cplex.getObjValue();
-
-        // ------------------------------------- Display the results -------------------------------------
-        
-        IloNumArray vals(env);
         if (verbose >= 1){
-            cplex.getValues(x, vals);
+            std::cout << "Best score: " << best_score << std::endl;
+        }
+
+        // ------------------------------------- Get the results -------------------------------------
+        IloNumArray valsx(env);
+        cplex.getValues(x, valsx);
+        for(int k = 0; k < config.nbVehicle; k++){
+            int current_node = 0;
+            do{
+                for(int j=0; j<config.nbVertex; j++){
+                    if(valsx[current_node*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
+                        current_node = j;
+                        if (current_node != 0){
+                            solution[k].push_back(current_node);
+                        }
+                        break;
+                    }
+                }
+            }while(current_node != 0);
+        }
+        IloNumArray valsy(env);
+        cplex.getValues(y, valsy);
+        for(int k = 0; k < config.nbShortTermVehicle; k++){
+            for(int i=0; i<config.nbVertex; i++){
+                if(valsy[i*config.nbShortTermVehicle + k] == 1){
+                    solution[k+config.nbVehicle].push_back(i);
+                    break;
+                }
+            }
+        }
+        // ------------------------------------- Display the results -------------------------------------
+        if (verbose >= 1){
             if(verbose >= 2){
                 // display x
                 std::cout << "x :" << std::endl;
-                std::cout << vals << std::endl;
+                std::cout << valsx << std::endl;
             }
             
             for(int k = 0; k < config.nbVehicle; k++){
                 for(int i=0; i<config.nbVertex; i++){
                     for(int j=0; j<config.nbVertex; j++){
-                        if(vals[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
+                        if(valsx[i*config.nbVehicle*config.nbVertex + j*config.nbVehicle + k] == 1){
                             std::cout << "Vehicle " << k << " travels from " << i << " to " << j << std::endl;
                         }
                     }
@@ -214,15 +242,14 @@ float opti(Config& config, int verbose = 0){
         }
 
         if (verbose >= 1){
-            cplex.getValues(y, vals);
             if(verbose >= 2){
                 // display y
                 std::cout << "y :" << std::endl;
-                std::cout << vals << std::endl;
+                std::cout << valsy << std::endl;
             }
             for(int k = 0; k < config.nbShortTermVehicle; k++){
                 for(int i=0; i<config.nbVertex; i++){
-                    if(vals[i*config.nbShortTermVehicle + k] == 1){
+                    if(valsy[i*config.nbShortTermVehicle + k] == 1){
                         std::cout << "Short-term vehicle " << k << " visits customer " << i << std::endl;
                     }
                 }
@@ -230,13 +257,13 @@ float opti(Config& config, int verbose = 0){
             if(verbose >= 2){
                 // display d
                 std::cout << "d :" << std::endl;
-                cplex.getValues(d, vals);
-                std::cout << vals << std::endl;
+                cplex.getValues(d, valsy);
+                std::cout << valsy << std::endl;
 
                 // display t
                 std::cout << "t :" << std::endl;
-                cplex.getValues(t, vals);
-                std::cout << vals << std::endl;
+                cplex.getValues(t, valsy);
+                std::cout << valsy << std::endl;
             }
         }
 
@@ -248,6 +275,6 @@ float opti(Config& config, int verbose = 0){
       std::cerr << "Error" << std::endl;
    }
    env.end();
-   return best_score;
+   return solution;
 
 }

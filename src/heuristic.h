@@ -5,7 +5,13 @@
 // Edge is a cost, a source and a destination
 using Edge = std::pair<float, std::pair<int, int>>;
 using Edges = std::vector<Edge>;
+using ListOfPairs = std::vector<std::pair<int, int>>;
+using VisitedList = std::vector<bool>;
+using VisitedList_ptr = std::shared_ptr<VisitedList>;
+using Path_ptr = std::shared_ptr<Path>;
+using int_ptr = std::shared_ptr<int>;
 using BigPartition = std::vector<ListOfNodes>;
+using BigPartition_ptr = std::shared_ptr<BigPartition>;
 using Distances = std::vector<float>;
 
   
@@ -83,6 +89,22 @@ std::ostream& operator<<(std::ostream& os, const BigPartition& v){
             os << v[i][j] << " ";
         }
         os << std::endl;
+    }
+    return os;
+};
+
+std::ostream& operator<<(std::ostream& os, const ListOfPairs& v){
+    int size = v.size();
+    for (int i = 0; i < size; i++){
+        os << v[i].first << "\t" << v[i].second << std::endl;
+    }
+    return os;
+};
+
+std::ostream& operator<<(std::ostream& os, const std::vector<bool>& v){
+    int size = v.size();
+    for (int i = 0; i < size; i++){
+        os << v[i] << " ";
     }
     return os;
 };
