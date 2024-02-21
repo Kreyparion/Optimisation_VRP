@@ -195,7 +195,7 @@ float compute_new_distance(Config& config, ListOfNodes subset){
                 edges.push_back(std::make_pair(config.dist[subset[i]*config.nbVertex+subset[j]], std::make_pair(i,j)));
             }
         }
-        bound = compute_upper_bound2(config, subset, edges);
+        bound = compute_upper_bound(config, subset, edges);
     }
     // float lower_bound = compute_lower_bound(config, subset);
     // float upper_bound = compute_upper_bound(config, subset, edges);

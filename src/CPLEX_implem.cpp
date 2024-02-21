@@ -1,6 +1,7 @@
 #pragma once
 #include <ilcplex/ilocplex.h>
 #include "config.h"
+#include "vrp.h"
 #include <chrono>
 
 

@@ -83,6 +83,35 @@ float compute_held_karp_rec(Config& config, HKResults& hk_results, HKPredecessor
  */
 void compute_held_karp(Config& config, HKResults& hk_results, HKPredecessors& hk_pred);
 
+
+
+/**
+ * @brief Return the result value of the TSP problem for a given list of nodes using the Held-Karp algorithm
+ * 
+ * @param config The configuration of the problem
+ * @param nodes The list of nodes
+ * @return float The result value of the TSP problem
+ */
+float get_one_TSP_result(Config& config, ListOfNodes nodes);
+
+/**
+ * @brief Return the solution of the TSP problem for a given list of nodes using the Held-Karp algorithm
+ * 
+ * @param config The configuration of the problem
+ * @param nodes The list of nodes
+ * @return Path The solution of the TSP problem
+ */
+Path get_one_TSP_solution(Config& config, ListOfNodes nodes);
+
+/**
+ * @brief Return the solution of the TSP problem for a given partition using the Held-Karp algorithm
+ * 
+ * @param config The configuration of the problem
+ * @param partition The partition of the graph
+ * @return Solution The solution of the TSP problem
+ */
+Solution return_solution_from_partition(Config& config, Partition partition);
+
 /**
  * @brief Compute the Held-Karp algorithm and fill the table for every subset of vertices
  * 
@@ -97,7 +126,7 @@ TSPResults fill_results_held_karp(Config& config, int verbose);
  * 
  * @param config The configuration of the problem
  * @param results The TSP solution for every subset of vertices
- * @param partition For every vehicle, the list of vertices it visits (in for of a sum of powers of 2)
+ * @param partition For every vehicle, the list of vertices it visits (in form of a sum of powers of 2)
  * @return float The score of the partition
  */
 float get_partition_score(Config& config, TSPResults results, Partition partition);
@@ -107,7 +136,7 @@ float get_partition_score(Config& config, TSPResults results, Partition partitio
  * 
  * @param config The configuration of the problem
  * @param results The TSP solution for every subset of vertices
- * @param partition For every vehicle, the list of vertices it visits (in for of a sum of powers of 2)
+ * @param partition For every vehicle, the list of vertices it visits (in form of a sum of powers of 2)
  * @param vehicle The vehicle we are currently looking at
  * @param vertex_num The number of the vertex we are currently looking at
  * @param vertex_num_pow The power of 2 of the vertex we are currently looking at
@@ -122,7 +151,7 @@ bool allowed_partition(Config& config, TSPResults& results, Partition partition,
  * 
  * @param config The configuration of the problem
  * @param results The TSP solution for every subset of vertices
- * @param partition For every vehicle, the list of vertices it visits (in for of a sum of powers of 2)
+ * @param partition For every vehicle, the list of vertices it visits (in form of a sum of powers of 2)
  * @param vertex_num The number of the vertex we are currently looking at
  * @param vertex_num_pow The power of 2 of the vertex we are currently looking at
  * @param capacities The amount of capacity used by every vehicle
