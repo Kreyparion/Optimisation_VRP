@@ -43,7 +43,11 @@ The mathematical model is described in the `report.pdf` file.
 The exact algorithm is implemented in the `exact_solver.cpp` file. It is responsible for solving the problem using an exact algorithm. It is a hierarchical approach, decomposing the problem into a partitioning problem and a TSP.
 The TSP is solved using the Held-Karp algorithm (dynamic programming in O(n^2*2^n)) and the partitioning problem is solved by brute force (in O(3^n) for 3 vehicles).
 
-### The Heuristic algorithm
+### The Bottom-up Heuristic algorithm
+
+The bottom-up heuristic algorithm is implemented in the `heuristic.cpp` file. It is an adaptation of the exact algorithm, to tackle problems with a large number of clients. In place of solving the TSP exactly, we find an upper bound using a MST and shortcutting the tour. The partitioning problem is solved using a greedy algorithm.
+
+### The Local Search Heuristic algorithm
 
 
 ### The `run.sh` script
