@@ -552,6 +552,19 @@ void TabouSearch::decrementTabouList() {
     }
 }
 
+std::vector<std::vector<int>> TabouSearch::getBestSolution() const {
+    std::vector<std::vector<int>> solution;
+    int n = bestSolution.size();
+    for (int i = 0; i < n; ++i) {
+        solution.push_back({});
+        int ni = bestSolution[i].size();
+        for (int j = 1; j < ni; ++j) {
+            solution[i].push_back(bestSolution[i][j]);
+        }
+    }
+    return solution;
+}
+
 // Mettre à jour la liste tabou après chaque itération
 void TabouSearch::updateTabouList(pair<pair<int, int>, pair<int, int>> move) {
     addToTabouList(move);

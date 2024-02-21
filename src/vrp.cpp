@@ -30,24 +30,27 @@ int main(int argc, char *argv[]){
     Config config = getConfig(tab_number, verbose);
     auto end_import = chrono::high_resolution_clock::now();
     chrono::duration<double> elapsed_import = end_import - start;
-//    cout << "Data importation done in " << elapsed_import.count() << " s" << endl;
+    cout << "Data importation done in " << elapsed_import.count() << " s" << endl;
 
-    /*// Solve the problem with the heuristic solver
+    // Solve the problem with the heuristic solver
     int max_time = 60;
     Solution heuristic_solver_solution = heuristic_solver(config, max_time, verbose);
     std::cout << heuristic_solver_solution << std::endl;
     float heuristic_solver_score = compute_and_check_solution(config, heuristic_solver_solution);
     auto end_heuristic_solver = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
-    std::cout << "Heuristic Algorithm Result: " << heuristic_solver_score << " in " << elapsed_heuristic_solver.count() << " s" << std::endl;*/
+    std::cout << "Heuristic Algorithm Result: " << heuristic_solver_score << " in " << elapsed_heuristic_solver.count() << " s" << std::endl;
 
     // Solve the problem with the tabou search
-    float Tabou_score = TabouSearch(config, 1000, 10, verbose).run();
+    TabouSearch tabou = TabouSearch(config, 1000, 10, verbose);
+    float Tabou_score = tabou.run();
+    Solution Tabou_solution = tabou.getBestSolution();
+    std::cout << Tabou_solution << std::endl;
     auto end_Tabou = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed_Tabou = end_Tabou - end_import;
+    chrono::duration<double> elapsed_Tabou = end_Tabou - end_heuristic_solver;
     cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << endl;
 
-    /*int n = config.nbVertex;
+    int n = config.nbVertex;
     if(n < 30){
         // Solve the problem with the exact solver
         Solution exact_solution = exact_solver(config, verbose);
@@ -66,7 +69,7 @@ int main(int argc, char *argv[]){
             std::chrono::duration<double> elapsed_CPlex = end_CPlex - end_exact_solver;
             std::cout << "CPLEX  Solver  Result : " << CPlex_score << " in " << elapsed_CPlex.count() << " s" << std::endl;
         }
-    }*/
+    }
 
 
     return 0;

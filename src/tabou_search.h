@@ -10,6 +10,7 @@ class TabouSearch {
 public:
     explicit TabouSearch(Config config, int num_iterations = 1000, int tabouDuration = 10, int verbose = false);
     float run();
+    vector<vector<int>> getBestSolution() const;
 
 private:
     Config config;
