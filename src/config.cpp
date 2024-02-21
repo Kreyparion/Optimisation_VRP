@@ -74,7 +74,7 @@ Config import_data(int num, bool verbose=0) {
                 try {
                     values.push_back(std::stof(value)); // Convertir en float et stocker
                 } catch (const std::exception& e) {
-                    std::cerr << "Error parsing value: " << e.what() << '\n';
+//                    std::cerr << "Error parsing value: " << e.what() << '\n';
                 }
             } else {
                 values.push_back(1000000);
