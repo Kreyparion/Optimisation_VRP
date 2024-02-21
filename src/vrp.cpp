@@ -41,6 +41,12 @@ int main(int argc, char *argv[]){
     std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
     std::cout << "Heuristic Algorithm Result: " << heuristic_solver_score << " in " << elapsed_heuristic_solver.count() << " s" << std::endl;
 
+    // Solve the problem with the tabou search
+    float Tabou_score = TabouSearch(config, 1000, 10, verbose).run();
+    auto end_Tabou = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed_Tabou = end_Tabou - end_heuristic_solver;
+    cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << endl;
+
     int n = config.nbVertex;
     if(n < 30){
         // Solve the problem with the exact solver
@@ -48,7 +54,7 @@ int main(int argc, char *argv[]){
         std::cout << exact_solution << std::endl;
         float exact_solver_score = compute_and_check_solution(config, exact_solution);
         auto end_exact_solver = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_heuristic_solver;
+        std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_Tabou;
         std::cout << "Exact Algorithm Result: " << exact_solver_score << " in " << elapsed_exact_solver.count() << " s" << std::endl;
 
         if(n < 17){
@@ -62,11 +68,6 @@ int main(int argc, char *argv[]){
         }
     }
 
-    // Solve the problem with the tabou search
-    float Tabou_score = TabouSearch(config, 1000, 10, verbose).run();
-    auto end_Tabou = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed_Tabou = end_Tabou - end_CPlex;
-    cout << "Tabou  Heuristic  Result : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << endl;
 
     return 0;
 }

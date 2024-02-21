@@ -13,15 +13,15 @@ TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bo
         tabou_tenure(tabou_tenure),
         verbose(verbose) {}
 
-/*vector<vector<int>> TabouSearch::generateInitialSolution() {
+vector<vector<int>> TabouSearch::generateInitialSolution() {
     if (verbose) {
         cout << "Génération de la solution initiale..." << endl;
     }
 
-    vector<vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle);
+    vector<vector<int>> solution(config.nbVehicle); // Initialiser avec des véhicules à long terme
 
-    // Initialiser les tournées pour les véhicules
-    for (int vehicule = 0; vehicule < config.nbVehicle + config.nbShortTermVehicle; ++vehicule) {
+    // Initialiser les tournées pour les véhicules à long terme
+    for (int vehicule = 0; vehicule < config.nbVehicle; ++vehicule) {
         solution[vehicule].push_back(0); // Ajouter le dépôt comme point de départ
     }
 
@@ -35,10 +35,6 @@ TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bo
                 }
                 solution[vehicule].push_back(client);
                 assigned = true;
-            } else {
-                if (verbose) {
-                    cout << "Client: " << client << " non-assigné au vehicule long-term: " << vehicule << endl << endl;
-                }
             }
         }
 
@@ -46,7 +42,8 @@ TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bo
         if (!assigned) {
             for (int vehicule = config.nbVehicle; vehicule < solution.size() && !assigned; ++vehicule) {
                 if (solution[vehicule].size() == 1 &&
-                    canAssignShortTerm(client, vehicule)) { // Un véhicule à court terme peut prendre un seul client
+                    canAssignShortTerm(solution[vehicule], client,
+                                       vehicule)) { // Un véhicule à court terme peut prendre un seul client
                     if (verbose) {
                         cout << "Client: " << client << " assigné au véhicule short-term: " << vehicule
                              << endl;
@@ -62,67 +59,14 @@ TabouSearch::TabouSearch(Config config, int num_iterations, int tabou_tenure, bo
             }
         }
 
-        // Si le client n'est toujours pas assigné, il y a un problème de capacité
+        // Si le client n'est pas assigné à un véhicule à long terme, lui attribuer un nouveau véhicule à court terme
         if (!assigned) {
-            // affichage des infos pour debug
+            vector<int> shortTermTour = {0, client}; // Créer une nouvelle tournée pour un véhicule à court terme
+            solution.push_back(shortTermTour); // Ajouter cette nouvelle tournée à la solution
             if (verbose) {
-                cout << "Client: " << client << " non-assigné à un véhicule." << endl;
-            }
-            throw runtime_error("Impossible d'assigner le client à un véhicule. Capacité insuffisante.");
-        }
-    }
-
-    return solution;
-}*/
-
-vector<vector<int>> TabouSearch::generateInitialSolution() {
-    if (verbose) {
-        cout << "Génération de la solution initiale avec l'heuristique du plus proche voisin..." << endl;
-    }
-
-    vector<vector<int>> solution(config.nbVehicle + config.nbShortTermVehicle,
-                                 vector<int>(1, 0)); // Initialisation des tournées avec le dépôt
-
-    // Initialiser un vecteur pour suivre quels clients ont été assignés
-    vector<bool> assignedClients(config.nbVertex, false); // false par défaut, true si assigné
-
-    // Pour chaque véhicule
-    for (int vehicule = 0; vehicule < config.nbVehicle + config.nbShortTermVehicle; ++vehicule) {
-        bool canAssignMore = true; // Contrôle si le véhicule peut prendre plus de clients
-
-        while (canAssignMore) {
-            int lastClient = solution[vehicule].back();
-            int nearestClient = -1;
-            double nearestDistance = numeric_limits<double>::max();
-
-            // Trouver le client non assigné le plus proche
-            for (int client = 1; client < config.nbVertex; ++client) {
-                if (!assignedClients[client]) {
-                    double distance = config.dist[lastClient * config.nbVertex +
-                                                  client]; // À implémenter selon votre structure de données
-                    if (distance < nearestDistance) {
-                        nearestClient = client;
-                        nearestDistance = distance;
-                    }
-                }
-            }
-
-            // Essayer d'assigner le client le plus proche au véhicule courant
-            if (nearestClient != -1 &&
-                canAssignClient(solution[vehicule], nearestClient, vehicule)) { // `canAssignClient` à adapter
-                solution[vehicule].push_back(nearestClient);
-                assignedClients[nearestClient] = true;
-            } else {
-                canAssignMore = false; // Aucun client proche ou capacité atteinte
+                cout << "Client: " << client << " assigné à un nouveau véhicule short-term." << endl;
             }
         }
-    }
-
-    // Vérifier si tous les clients ont été assignés
-    if (find(assignedClients.begin() + 1, assignedClients.end(), false) != assignedClients.end()) {
-        displaySolution(solution);
-        throw runtime_error(
-                "Impossible d'assigner tous les clients. Capacité insuffisante ou contraintes trop strictes.");
     }
 
     return solution;
@@ -130,7 +74,7 @@ vector<vector<int>> TabouSearch::generateInitialSolution() {
 
 bool TabouSearch::canAssignClient(vector<int> &vector, int client, int vehicule) {
     return vehicule < config.nbVehicle ? canAssignLongTerm(vector, client, vehicule) :
-    canAssignShortTerm(vector, client,vehicule);
+           canAssignShortTerm(vector, client, vehicule);
 }
 
 // Helper function pour vérifier si le véhicule peut prendre un autre client
@@ -311,11 +255,13 @@ float TabouSearch::calculateCost(const vector<vector<int>> &solution) {
             tourCost += config.fixedCostVehicle[vehicleIndex];
         } else {
             // Short-term vehicle, adjust index for short-term list
-            int shortTermIndex = vehicleIndex - config.nbVehicle;
-            tourCost += config.fixedCostShortTermVehicle[shortTermIndex];
+            vehicleIndex -= config.nbVehicle;
+            // Si le véhicule est un fake
+            tourCost += config.fixedCostShortTermVehicle[(vehicleIndex >= config.nbShortTermVehicle
+                                                          ? 0 : vehicleIndex)];
             if (verbose) {
                 cout << "Coût de la tournée du véhicule short-term " << vehicleIndex << ": " << tourCost << endl;
-                cout << "Coût fixe : " << config.fixedCostShortTermVehicle[shortTermIndex] << endl;
+//                cout << "Coût fixe : " << config.fixedCostShortTermVehicle[vehicleIndex] << endl;
                 cout << "Coût total: " << totalCost << endl;
             }
             totalCost += tourCost;
