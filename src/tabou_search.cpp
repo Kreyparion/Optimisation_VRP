@@ -1,5 +1,5 @@
+#pragma once
 #include "tabou_search.h"
-
 #include <utility>
 
 using namespace std;

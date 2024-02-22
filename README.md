@@ -49,6 +49,8 @@ The bottom-up heuristic algorithm is implemented in the `heuristic.cpp` file. It
 
 ### The Local Search Heuristic algorithm
 
+The tabu search algorithm is implemented in the `tabu_search.cpp` file. It is responsible for finding an approximate solution to the problem. We initialize the solution using the nearest neighbor algorithm and then we apply the tabu search algorithm to improve it.
+`vrp.cpp` runs 100 different tabu search algorithms (with different initial solutions) and keeps the best one.
 
 ### The `run.sh` script
 
