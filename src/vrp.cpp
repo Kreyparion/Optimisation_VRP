@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
     chrono::duration<double> elapsed_import = end_import - start;
     std::cout << std::endl;
     cout << "Data from table " << tab_number << " imported in " << elapsed_import.count() << " s" << endl;
-
+    std::cout << std::endl;
 
     // Solve the problem with the tabou search
     float best_score = 100000.0;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
     // Solve the problem with the heuristic solver
     int max_time = 60;
     Solution heuristic_solver_solution = heuristic_solver(config, max_time, verbose);
-    std::cout << std::endl;
+    
     std::cout << "----------------- Heuristic Algorithm -----------------" << std::endl;
     display_solution(config, heuristic_solver_solution);
     float heuristic_solver_score = compute_and_check_solution(config, heuristic_solver_solution);
