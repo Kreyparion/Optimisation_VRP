@@ -33,6 +33,28 @@ int main(int argc, char *argv[]){
     std::cout << std::endl;
     cout << "Data from table " << tab_number << " imported in " << elapsed_import.count() << " s" << endl;
 
+
+    // Solve the problem with the tabou search
+    float best_score = 100000.0;
+    Solution best_solution;
+    for (int i = 0; i < 100; i++){
+        TabouSearch tabou = TabouSearch(config, 1000, 10, verbose);
+        float Tabou_score = tabou.run();
+        Solution Tabou_solution = tabou.getBestSolution();
+        if (Tabou_score < best_score){
+            best_score = Tabou_score;
+            best_solution = Tabou_solution;
+        }
+    }
+    
+    std::cout << "------------------ Tabou Algorithm --------------------" << std::endl;
+    display_solution(config, best_solution);
+    auto end_Tabou = chrono::high_resolution_clock::now();
+    chrono::duration<double> elapsed_Tabou = end_Tabou - end_import;
+    cout << "Cost found : " << best_score << " in " << elapsed_Tabou.count() << " s" << endl;
+    std::cout << "-------------------------------------------------------" << std::endl;
+    std::cout << std::endl;
+
     // Solve the problem with the heuristic solver
     int max_time = 60;
     Solution heuristic_solver_solution = heuristic_solver(config, max_time, verbose);
@@ -41,20 +63,8 @@ int main(int argc, char *argv[]){
     display_solution(config, heuristic_solver_solution);
     float heuristic_solver_score = compute_and_check_solution(config, heuristic_solver_solution);
     auto end_heuristic_solver = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_import;
+    std::chrono::duration<double> elapsed_heuristic_solver = end_heuristic_solver - end_Tabou;
     std::cout << "Cost found : " << heuristic_solver_score << " in " << elapsed_heuristic_solver.count() << " s" << std::endl;
-    std::cout << "-------------------------------------------------------" << std::endl;
-    std::cout << std::endl;
-
-    // Solve the problem with the tabou search
-    TabouSearch tabou = TabouSearch(config, 1000, 10, verbose);
-    float Tabou_score = tabou.run();
-    Solution Tabou_solution = tabou.getBestSolution();
-    std::cout << "------------------ Tabou Algorithm --------------------" << std::endl;
-    display_solution(config, Tabou_solution);
-    auto end_Tabou = chrono::high_resolution_clock::now();
-    chrono::duration<double> elapsed_Tabou = end_Tabou - end_heuristic_solver;
-    cout << "Cost found : " << Tabou_score << " in " << elapsed_Tabou.count() << " s" << endl;
     std::cout << "-------------------------------------------------------" << std::endl;
     std::cout << std::endl;
 
@@ -66,7 +76,7 @@ int main(int argc, char *argv[]){
         display_solution(config, exact_solution);
         float exact_solver_score = compute_and_check_solution(config, exact_solution);
         auto end_exact_solver = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_Tabou;
+        std::chrono::duration<double> elapsed_exact_solver = end_exact_solver - end_heuristic_solver;
         std::cout << "Cost found: " << exact_solver_score << " in " << elapsed_exact_solver.count() << " s" << std::endl;
         std::cout << "-------------------------------------------------------" << std::endl;
         std::cout << std::endl;

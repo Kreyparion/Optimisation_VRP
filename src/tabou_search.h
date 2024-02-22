@@ -29,7 +29,7 @@ private:
     void displaySolution(const vector<vector<int>>& solution) const;
     bool canAssignLongTerm(const vector<int>& tour, int client, int vehicle);
     bool canAssignShortTerm(const vector<int> &tour, int client, int vehicle);
-    void applyMove(pair<pair<int, int>, pair<int, int>> move);
+    std::vector<std::vector<int>> applyMove(pair<pair<int, int>, pair<int, int>> move);
     bool isValidMove(int client, int fromVehicle, int toVehicle);
     bool isTabou(pair<pair<int, int>, pair<int, int>> move);
     void addToTabouList(pair<pair<int, int>, pair<int, int>> move);
