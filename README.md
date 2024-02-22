@@ -49,6 +49,7 @@ The bottom-up heuristic algorithm is implemented in the `heuristic.cpp` file. It
 
 ### The Local Search Heuristic algorithm
 
+The local search heuristic algorithm is implemented in the `local_search.cpp` file. It is responsible for solving the problem using a local search algorithm. It is a 2-opt algorithm, which is a simple and efficient algorithm to improve the solution of a TSP.
 
 ### The `run.sh` script
 
